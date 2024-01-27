@@ -10,11 +10,24 @@
 
 	<properties>
 		<spring-ai.version>0.8.0-SNAPSHOT</spring-ai.version>
+		<spring-boot.version>3.2.2</spring-boot.version>
 	</properties>
 
 	<modules>
 		<module>models/spring-ai-dashscope</module>
 	</modules>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 
 </project>
