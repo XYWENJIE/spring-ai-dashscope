@@ -3,6 +3,7 @@ package org.springframework.ai.dashcope;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.ChatResponse;
@@ -29,7 +30,7 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	
 	private Double temperature = 0.7;
 	
-	private final DashCopeService dashCopeService = new DashCopeService();
+	private final DashCopeService dashCopeService = new DashCopeService("");
 	
 	private final RetryTemplate retryTemplate = RetryTemplate.builder()
 			.maxAttempts(10)
@@ -54,6 +55,7 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 				return new ChatResponse(List.of());
 			}
 			
+			//TODO
 			RateLimit rateLimit = null;
 			List<Generation> generations = chatCompletion.output().choise().stream().map(choice -> {
 				return new Generation(choice.message().content(),Map.of("role",choice.message().role())).withGenerationMetadata(ChatGenerationMetadata.from(choice.finishReason(),null));
@@ -64,9 +66,32 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	}
 
 	@Override
-	public Flux<ChatResponse> stream(Prompt request) {
-		// TODO Auto-generated method stub
-		return null;
+	public Flux<ChatResponse> stream(Prompt prompt) {
+		return this.retryTemplate.execute(ctx -> {
+			List<Message> messages = prompt.getInstructions();
+			List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
+					.map(m -> new ChatCompletionMessage(m.getMessageType().name(),
+							m.getContent()))
+					.toList();
+			
+			Flux<ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(new ChatCompletionRequest(chatCompletionMessages, this.model, this.temperature.floatValue()));
+			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap();
+			
+			return completionChunks.map(chunk -> {
+				String chunkId = chunk.requestId();
+				List<Generation> generations = chunk.output().choise().stream().map(choise -> {
+					if(choise.message().role() != null) {
+						roleMap.putIfAbsent(chunkId, choise.message().role());
+					}
+					var generation = new Generation(choise.message().content(),Map.of("role",roleMap.get(chunkId)));
+					if(choise.finishReason() != null) {
+						generation = generation.withGenerationMetadata(ChatGenerationMetadata.from(choise.finishReason(), null));
+					}
+					return generation;
+				}).toList();
+				return new ChatResponse(generations);
+			});
+		});
 	}
 
 }

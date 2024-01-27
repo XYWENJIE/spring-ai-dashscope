@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -13,14 +14,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import reactor.core.publisher.Flux;
+
 public class DashCopeService {
 
 	private final String baseUrl = "https://dashscope.aliyuncs.com";
 
 	private final RestClient restClient;
+	
+	private final WebClient webClient;
 
-	public DashCopeService() {
+	public DashCopeService(String accessToken) {
 		this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+		this.webClient = WebClient.builder().baseUrl(baseUrl).build();
 	}
 
 	@JsonInclude(Include.NON_NULL)
@@ -90,7 +96,16 @@ public class DashCopeService {
 	
 	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
-		return this.restClient.post().uri("/api/v1/services/aigc/text-generation/generation").body(chatRequest).retrieve().toEntity(ChatCompletion.class);
+		return this.restClient.post()
+				.uri("/api/v1/services/aigc/text-generation/generation")
+				.body(chatRequest).retrieve().toEntity(ChatCompletion.class);
+	}
+	
+	public Flux<ChatCompletion> chatCompletionStream(ChatCompletionRequest chatRequest){
+		Assert.notNull(chatRequest, "请求体不能为空。");
+		return this.webClient.post()
+				.uri("/api/v1/services/aigc/text-generation/generation")
+				.body(chatRequest,ChatCompletion.class).retrieve().bodyToFlux(ChatCompletion.class);
 	}
 	
 //	public static void main(String[] args) throws JsonProcessingException {

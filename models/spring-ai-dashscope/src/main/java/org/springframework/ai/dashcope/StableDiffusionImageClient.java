@@ -1,5 +1,5 @@
 package org.springframework.ai.dashcope;
 
-public class StableDiffusionImageClient {
+public class StableDiffusionImageClient  {
 
 }
