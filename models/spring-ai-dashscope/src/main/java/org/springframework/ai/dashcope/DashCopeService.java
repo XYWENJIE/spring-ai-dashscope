@@ -184,7 +184,9 @@ public class DashCopeService {
 	public record Output(
 			@JsonProperty("finish_reason")String finishReason,
 			@JsonProperty("text") String text,
-			@JsonProperty("choices") List<Choise> choise) {
+			@JsonProperty("choices") List<Choise> choise,
+			@JsonProperty("task_id") String taskId,
+			@JsonProperty("task_status") StatusStatus taskStatus) {
 		
 	}
 	
@@ -199,7 +201,43 @@ public class DashCopeService {
 	public record Usage(
 			@JsonProperty("total_tokens") Integer totalTokens,
 			@JsonProperty("output_tokens")Integer outputTokens,
-			@JsonProperty("input_tokens")Integer inputToken) {
+			@JsonProperty("input_tokens")Integer inputToken,
+			@JsonProperty("image_count")Integer imageCount) {
+	}
+	
+	@JsonInclude(Include.NON_NULL)
+	public record QWenImageRequest(
+			@JsonProperty("model") String model,
+			@JsonProperty("input") Input input,
+			@JsonProperty("parameters") Parameters parameters) {
+		public QWenImageRequest(Input input,Parameters parameters) {
+			this("wanx-v1",input,parameters);
+		}
+	}
+	
+	@JsonInclude(Include.NON_NULL)
+	public record Results(
+			@JsonProperty("url")String url,
+			@JsonProperty("code")String code,
+			@JsonProperty("message")String message) {
+	}
+	
+	public record TaskMetrices(
+			@JsonProperty("TOTAL")Integer total,
+			@JsonProperty("SUCCEEDED")Integer succeeded,
+			@JsonProperty("FAILED")Integer fauled) {
+		
+	}
+	
+	@JsonInclude(Include.NON_NULL)
+	public record QWenImageResponse(
+			@JsonProperty("request_id")String requestId,
+			@JsonProperty("output") Output output) {
+		
+	}
+	
+	public enum StatusStatus{
+		PENDING,RUNNING,SUCCEEDED,FAILED,UNKNOWN,
 	}
 	
 	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest){
@@ -215,6 +253,17 @@ public class DashCopeService {
 		return this.webClient.post()
 				.uri("/api/v1/services/aigc/text-generation/generation")
 				.body(chatRequest,ChatCompletion.class).retrieve().bodyToFlux(ChatCompletion.class);
+	}
+	
+	public ResponseEntity<QWenImageResponse> createQwenImageTask(QWenImageRequest qwenImageRequest) {
+		return this.restClient.post().uri("/api/v1/services/aigc/text2image/image-synthesis")
+				.header("X-DashScope-Async", "enable")
+				.body(qwenImageRequest).retrieve()
+				.toEntity(QWenImageResponse.class);
+	}
+	
+	public ResponseEntity<QWenImageResponse> findImageTaskResult(String taskId){
+		return this.restClient.get().uri("/api/v1/tasks/{task_id}",taskId).retrieve().toEntity(QWenImageResponse.class);
 	}
 	
 	public static void main(String[] args) throws JsonProcessingException {
