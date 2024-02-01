@@ -1,10 +1,13 @@
 package org.springframework.ai.dashcope;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.Generation;
@@ -26,15 +29,21 @@ import reactor.core.publisher.Flux;
  */
 public class QWenChatClient implements ChatClient,StreamingChatClient {
 	
+	private final Logger logger = LoggerFactory.getLogger(QWenChatClient.class);
+	
 	private String model = "qwen-72b-chat";
 	
 	private Double temperature = 0.7;
 	
-	private final DashCopeService dashCopeService = new DashCopeService("");
+	private final DashCopeService dashCopeService;
+	
+	public QWenChatClient(DashCopeService dashCopeService) {
+		this.dashCopeService = dashCopeService;
+	}
 	
 	private final RetryTemplate retryTemplate = RetryTemplate.builder()
 			.maxAttempts(10)
-			.retryOn(Exception.class)
+			.retryOn(IOException.class)
 			.exponentialBackoff(Duration.ofMillis(2000), 5, Duration.ofMillis(3 * 60000))
 			.build();
 
@@ -42,9 +51,8 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	public ChatResponse call(Prompt prompt) {
 		return this.retryTemplate.execute(ctx -> {
 			List<Message> messages = prompt.getInstructions();
-			
 			List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
-					.map(m -> new ChatCompletionMessage(m.getMessageType().name(),
+					.map(m -> new ChatCompletionMessage(m.getMessageType().getValue(),
 							m.getContent()))
 					.toList();
 			
@@ -52,9 +60,10 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 			
 			var chatCompletion = completionEntity.getBody();
 			if(chatCompletion == null) {
+				logger.warn("No chat completion returned for request:{}",chatCompletion);
 				return new ChatResponse(List.of());
 			}
-			
+			logger.info("QwenChatClient返回处理信息");
 			//TODO
 			RateLimit rateLimit = null;
 			List<Generation> generations = chatCompletion.output().choise().stream().map(choice -> {
@@ -78,18 +87,18 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap();
 			
 			return completionChunks.map(chunk -> {
-				String chunkId = chunk.requestId();
-				List<Generation> generations = chunk.output().choise().stream().map(choise -> {
-					if(choise.message().role() != null) {
-						roleMap.putIfAbsent(chunkId, choise.message().role());
-					}
-					var generation = new Generation(choise.message().content(),Map.of("role",roleMap.get(chunkId)));
-					if(choise.finishReason() != null) {
-						generation = generation.withGenerationMetadata(ChatGenerationMetadata.from(choise.finishReason(), null));
-					}
-					return generation;
-				}).toList();
-				return new ChatResponse(generations);
+				String chunkId = chunk.request_id();
+//				List<Generation> generations = chunk.output().choise().stream().map(choise -> {
+//					if(choise.message().role() != null) {
+//						roleMap.putIfAbsent(chunkId, choise.message().role());
+//					}
+//					var generation = new Generation(choise.message().content(),Map.of("role",roleMap.get(chunkId)));
+//					if(choise.finishReason() != null) {
+//						generation = generation.withGenerationMetadata(ChatGenerationMetadata.from(choise.finishReason(), null));
+//					}
+//					return generation;
+//				}).toList();
+				return new ChatResponse(null);
 			});
 		});
 	}
