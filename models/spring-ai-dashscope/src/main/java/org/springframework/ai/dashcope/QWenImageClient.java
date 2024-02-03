@@ -9,8 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashcope.DashCopeService.DashCopeApiException;
 import org.springframework.ai.dashcope.DashCopeService.QWenImageRequest;
+import org.springframework.ai.dashcope.DashCopeService.Input;
 import org.springframework.ai.dashcope.DashCopeService.QWenImageResponse;
 import org.springframework.ai.dashcope.DashCopeService.StatusStatus;
+import org.springframework.ai.image.Image;
 import org.springframework.ai.image.ImageClient;
 import org.springframework.ai.image.ImageGeneration;
 import org.springframework.ai.image.ImageOptions;
@@ -48,14 +50,15 @@ public class QWenImageClient implements ImageClient {
 			
 			String instructions = imagePrompt.getInstructions().get(0).getText();
 			
-			QWenImageRequest imageRequest = new QWenImageRequest(null, null);
+			QWenImageRequest imageRequest = new QWenImageRequest(new Input(instructions,null), null);
 			ResponseEntity<QWenImageResponse> responseEntity = this.dashCopeService.createQwenImageTask(imageRequest);
 			return responseEntity.getBody();
 		});
 		try {
 			if(taskImageResponse.output().taskStatus() == StatusStatus.PENDING) {
-				logger.info("任务提交成功，需要排队");
+				logger.info("任务提交成功，需要排队,休眠3秒");
 				Thread.sleep(3000);
+				logger.info("休眠完成，查询任务结果！");
 			}
 		}catch (Exception e) {
 			logger.error(e.getMessage(),e);
@@ -64,6 +67,7 @@ public class QWenImageClient implements ImageClient {
 			ResponseEntity<QWenImageResponse> responseEntity = this.dashCopeService.findImageTaskResult(taskImageResponse.output().taskId());
 			QWenImageResponse resultImageResponse = responseEntity.getBody();
 			if(resultImageResponse.output().taskStatus() != StatusStatus.SUCCEEDED) {
+				logger.info("任务还在进行生成中，请稍后");
 				throw new DashCopeApiException("任务还在进行生成请稍后");
 			}
 			return convertResponse(resultImageResponse);
@@ -76,8 +80,10 @@ public class QWenImageClient implements ImageClient {
 			return new ImageResponse(List.of());
 		}
 		
-		//List<ImageGeneration> imageGenerationList = qwenImageResponse.output().
-		return null;
+		List<ImageGeneration> imageGenerationList = qwenImageResponse.output().results().stream().map(entry -> {
+			return new ImageGeneration(new Image(entry.url(),null));
+		}).toList();
+		return new ImageResponse(imageGenerationList);
 	}
 
 }

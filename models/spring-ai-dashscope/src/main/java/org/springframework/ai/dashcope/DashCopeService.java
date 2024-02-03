@@ -187,7 +187,7 @@ public class DashCopeService {
 			@JsonProperty("choices") List<Choise> choise,
 			@JsonProperty("task_id") String taskId,
 			@JsonProperty("task_status") StatusStatus taskStatus,
-			@JsonProperty("results") Results results) {
+			@JsonProperty("results") List<Results> results) {
 		
 	}
 	
