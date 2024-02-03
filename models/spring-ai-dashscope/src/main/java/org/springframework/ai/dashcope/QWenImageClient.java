@@ -55,7 +55,7 @@ public class QWenImageClient implements ImageClient {
 		try {
 			if(taskImageResponse.output().taskStatus() == StatusStatus.PENDING) {
 				logger.info("任务提交成功，需要排队");
-				Thread.sleep(5000);
+				Thread.sleep(3000);
 			}
 		}catch (Exception e) {
 			logger.error(e.getMessage(),e);
@@ -76,7 +76,7 @@ public class QWenImageClient implements ImageClient {
 			return new ImageResponse(List.of());
 		}
 		
-		//List<ImageGeneration> imageGenerationList = qwenImageResponse.
+		//List<ImageGeneration> imageGenerationList = qwenImageResponse.output().
 		return null;
 	}
 
