@@ -4,6 +4,9 @@
 
 **Spring-AI-extension**A meticulously designed extension library, its core objective is to provide a seamless integration solution for the leading large language model (LLM) in China. Built upon the robust foundation of the Spring AI infrastructure, this project aims to deeply expand and enrich this ecosystem by implementing and encapsulating RESTful API interfaces of the country’s top-tier large models, thereby achieving close and efficient collaboration with the Spring AI platform. Developers can leverage this extension library to easily invoke high-performance LLM services provided by domestic operators while fully utilizing the Spring AI framework, further enhancing the application’s intelligence level and user experience.
 
+## 依赖
+
+[Spring AI](https://github.com/spring-projects/spring-ai)
 
 ##功能特性
 
@@ -32,7 +35,7 @@ mvn clean install
 This process will involve integrating the project and installing artifacts into the local Maven repository.
 
 Introduce dependencies
-In your Spring project, you can include dependencies, using Alibaba Cloud’s Model Service product ‘LingJi’ for illustration purposes.:
+In your Spring project, you can include dependencies, using Alibaba Cloud’s Model Service product ‘dashscope’ for illustration purposes.:
 ~~~xml
 <dependency>
 	<groupId>org.xywenjie.spring-ai-extension</groupId>
