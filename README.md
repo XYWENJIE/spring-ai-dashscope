@@ -1,3 +1,7 @@
+<p align="left">
+	<a href="README-zh.md">中文</a>|English
+</p>
+
 # spring-ai-extension
 
 ### Introduction
