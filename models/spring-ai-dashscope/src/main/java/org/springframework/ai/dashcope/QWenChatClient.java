@@ -32,17 +32,17 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenChatClient.class);
 	
-	private String model = "qwen-72b-chat";
-	
-	private Double temperature = 0.7;
-	
 	private final DashCopeService dashCopeService;
 	
 	private QWenChatOptions defaultChatOptions;
 	
 	public QWenChatClient(DashCopeService dashCopeService) {
+		this(dashCopeService, QWenChatOptions.builder().withModel("qwen-72b-chat").withTemperature(0.7f).build());
+	}
+	
+	public QWenChatClient(DashCopeService dashCopeService,QWenChatOptions qWenChatOptions) {
 		this.dashCopeService = dashCopeService;
-		this.defaultChatOptions = new QWenChatOptions();
+		this.defaultChatOptions = qWenChatOptions;
 	}
 	
 	private final RetryTemplate retryTemplate = RetryTemplate.builder()
