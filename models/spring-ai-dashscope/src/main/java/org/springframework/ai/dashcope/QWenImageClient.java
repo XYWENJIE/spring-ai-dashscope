@@ -12,6 +12,7 @@ import org.springframework.ai.dashcope.DashCopeService.QWenImageRequest;
 import org.springframework.ai.dashcope.DashCopeService.Input;
 import org.springframework.ai.dashcope.DashCopeService.QWenImageResponse;
 import org.springframework.ai.dashcope.DashCopeService.StatusStatus;
+import org.springframework.ai.dashcope.DashCopeService.TaskMetrices;
 import org.springframework.ai.image.Image;
 import org.springframework.ai.image.ImageClient;
 import org.springframework.ai.image.ImageGeneration;
@@ -56,20 +57,24 @@ public class QWenImageClient implements ImageClient {
 		});
 		try {
 			if(taskImageResponse.output().taskStatus() == StatusStatus.PENDING) {
-				logger.info("任务提交成功，需要排队,休眠3秒");
-				Thread.sleep(3000);
+				logger.info("任务提交成功，需要排队,休眠4秒");
+				Thread.sleep(4000);
 				logger.info("休眠完成，查询任务结果！");
 			}
 		}catch (Exception e) {
 			logger.error(e.getMessage(),e);
 		}
 		return this.retryTemplate.execute(ctx -> {
+			logger.info("请求查询结果");
 			ResponseEntity<QWenImageResponse> responseEntity = this.dashCopeService.findImageTaskResult(taskImageResponse.output().taskId());
 			QWenImageResponse resultImageResponse = responseEntity.getBody();
+			logger.info("查询结果完成");
 			if(resultImageResponse.output().taskStatus() != StatusStatus.SUCCEEDED) {
-				logger.info("任务还在进行生成中，请稍后");
+				TaskMetrices taskMetrices = resultImageResponse.output().taskMetrices();
+				logger.info("任务还在进行生成中，一共有{}任务，完成{}个任务，请稍后",taskMetrices.total(),taskMetrices.succeeded());
 				throw new DashCopeApiException("任务还在进行生成请稍后");
 			}
+			logger.info("查询结果完成，并封装数据");
 			return convertResponse(resultImageResponse);
 		});
 	}

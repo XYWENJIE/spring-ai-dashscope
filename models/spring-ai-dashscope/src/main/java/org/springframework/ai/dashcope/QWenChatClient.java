@@ -19,6 +19,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletion;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletionMessage;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletionRequest;
+import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
 
@@ -37,8 +38,11 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	
 	private final DashCopeService dashCopeService;
 	
+	private QWenChatOptions defaultChatOptions;
+	
 	public QWenChatClient(DashCopeService dashCopeService) {
 		this.dashCopeService = dashCopeService;
+		this.defaultChatOptions = new QWenChatOptions();
 	}
 	
 	private final RetryTemplate retryTemplate = RetryTemplate.builder()
@@ -50,13 +54,8 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	@Override
 	public ChatResponse call(Prompt prompt) {
 		return this.retryTemplate.execute(ctx -> {
-			List<Message> messages = prompt.getInstructions();
-			List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
-					.map(m -> new ChatCompletionMessage(m.getMessageType().getValue(),
-							m.getContent()))
-					.toList();
 			
-			ResponseEntity<ChatCompletion> completionEntity = this.dashCopeService.chatCompletionEntity(new ChatCompletionRequest(chatCompletionMessages,model,temperature.floatValue()));
+			ResponseEntity<ChatCompletion> completionEntity = this.dashCopeService.chatCompletionEntity(createRequest(prompt));
 			
 			var chatCompletion = completionEntity.getBody();
 			if(chatCompletion == null) {
@@ -77,13 +76,8 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	@Override
 	public Flux<ChatResponse> stream(Prompt prompt) {
 		return this.retryTemplate.execute(ctx -> {
-			List<Message> messages = prompt.getInstructions();
-			List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
-					.map(m -> new ChatCompletionMessage(m.getMessageType().name(),
-							m.getContent()))
-					.toList();
 			
-			Flux<ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(new ChatCompletionRequest(chatCompletionMessages, this.model, this.temperature.floatValue()));
+			Flux<ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(createRequest(prompt));
 			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap();
 			
 			return completionChunks.map(chunk -> {
@@ -101,6 +95,17 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 				return new ChatResponse(null);
 			});
 		});
+	}
+	
+	private ChatCompletionRequest createRequest(Prompt prompt) {
+		List<Message> messages = prompt.getInstructions();
+		List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
+				.map(m -> new ChatCompletionMessage(m.getMessageType().name(),
+						m.getContent()))
+				.toList();
+		
+		ChatCompletionRequest request  = new ChatCompletionRequest(chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
+		return request;
 	}
 
 }
