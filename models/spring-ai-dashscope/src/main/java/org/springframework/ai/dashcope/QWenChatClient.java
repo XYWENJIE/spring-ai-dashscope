@@ -19,6 +19,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletion;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletionMessage;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletionRequest;
+import org.springframework.ai.dashcope.metadata.support.ChatModel;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
@@ -37,7 +38,7 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	private QWenChatOptions defaultChatOptions;
 	
 	public QWenChatClient(DashCopeService dashCopeService) {
-		this(dashCopeService, QWenChatOptions.builder().withModel("qwen-72b-chat").withTemperature(0.7f).build());
+		this(dashCopeService, QWenChatOptions.builder().withModel(ChatModel.QWen_72B_CHAT).withTemperature(0.7f).build());
 	}
 	
 	public QWenChatClient(DashCopeService dashCopeService,QWenChatOptions qWenChatOptions) {

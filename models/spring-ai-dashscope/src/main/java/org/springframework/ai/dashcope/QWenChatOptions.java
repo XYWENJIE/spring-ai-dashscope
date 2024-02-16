@@ -1,6 +1,7 @@
 package org.springframework.ai.dashcope;
 
 import org.springframework.ai.chat.ChatOptions;
+import org.springframework.ai.dashcope.metadata.support.ChatModel;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -9,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(Include.NON_NULL)
 public class QWenChatOptions implements ChatOptions{
 	
-	private @JsonProperty("model") String model;
+	private @JsonProperty("model") ChatModel model;
 	
 	private @JsonProperty("temperature") Float temperature = 0.7F;
 	
@@ -26,7 +27,7 @@ public class QWenChatOptions implements ChatOptions{
 			this.options = new QWenChatOptions();
 		}
 		
-		public Builder withModel(String model) {
+		public Builder withModel(ChatModel model) {
 			this.options.model = model;
 			return this;
 		}
@@ -43,10 +44,10 @@ public class QWenChatOptions implements ChatOptions{
 	}
 	
 	public String getModel() {
-		return model;
+		return model.getModelValue();
 	}
 
-	public void setModel(String model) {
+	public void setModel(ChatModel model) {
 		this.model = model;
 	}
 
