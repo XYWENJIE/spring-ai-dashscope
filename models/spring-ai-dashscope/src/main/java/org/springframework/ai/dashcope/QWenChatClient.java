@@ -66,8 +66,8 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 			logger.info("QwenChatClient返回处理信息");
 			//TODO
 			RateLimit rateLimit = null;
-			List<Generation> generations = chatCompletion.output().choise().stream().map(choice -> {
-				return new Generation(choice.message().content(),Map.of("role",choice.message().role())).withGenerationMetadata(ChatGenerationMetadata.from(choice.finishReason(),null));
+			List<Generation> generations = chatCompletion.output().choise().stream().map(choise -> {
+				return new Generation(choise.message().content(),Map.of("role",choise.message().role())).withGenerationMetadata(ChatGenerationMetadata.from(chatCompletion.output().choise().get(0).finishReason(),null));
 			}).toList();
 			
 			return new ChatResponse(generations,null);
@@ -101,7 +101,7 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	private ChatCompletionRequest createRequest(Prompt prompt) {
 		List<Message> messages = prompt.getInstructions();
 		List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
-				.map(m -> new ChatCompletionMessage(m.getMessageType().name(),
+				.map(m -> new ChatCompletionMessage(m.getMessageType().getValue(),
 						m.getContent()))
 				.toList();
 		

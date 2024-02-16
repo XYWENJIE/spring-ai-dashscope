@@ -2,6 +2,7 @@ package org.springframework.ai.dashcope;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Consumer;
@@ -72,7 +73,7 @@ public class DashCopeService {
 		this.restClient = RestClient.builder()
 				.baseUrl(baseUrl)
 				.defaultHeaders(jsonContentHeaders)
-				//.requestInterceptor(new LogHttpRequestInterceptor())
+				.requestInterceptor(new LogHttpRequestInterceptor())
 				.defaultStatusHandler(responseErrorHandler)
 				.build();
 		this.webClient = WebClient.builder().baseUrl(baseUrl).build();
@@ -110,14 +111,14 @@ public class DashCopeService {
 				logger.info("Http Header:{},value:{}",t,u);
 			});
 			logger.info("Http Response Code: {}",httpResponse.getStatusCode());
-			if(httpResponse.getBody() != null) {
-				try (ByteArrayInputStream bais = new ByteArrayInputStream(StreamUtils.copyToByteArray(httpResponse.getBody()))){
-					String responseBody = new String(bais.readAllBytes(),StandardCharsets.UTF_8);
-					logger.info("Response Body : {}",responseBody);
-					ChatCompletion chatCompletion = objectMapper.readValue(responseBody, ChatCompletion.class);
-					logger.info(chatCompletion.toString());
-				}
-			}
+//			if(httpResponse.getBody() != null) {
+//				try(InputStream responseBodyStream = httpResponse.getBody()){
+//					String responseBody = new String(StreamUtils.copyToByteArray(responseBodyStream),StandardCharsets.UTF_8);
+//					logger.info("Response Body : {}",responseBody);
+//					ChatCompletion chatCompletion = objectMapper.readValue(responseBody, ChatCompletion.class);
+//					logger.info(chatCompletion.toString());
+//				}
+//			}
 			return httpResponse;
 		}
 	}
