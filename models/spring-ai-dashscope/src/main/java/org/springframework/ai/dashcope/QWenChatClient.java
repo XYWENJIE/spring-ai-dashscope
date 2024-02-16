@@ -27,7 +27,8 @@ import org.springframework.retry.support.RetryTemplate;
 import reactor.core.publisher.Flux;
 
 /**
- * 该类是访问
+ * 通义千问（QWen）的客户端实现类
+ * @author 黄文杰
  */
 public class QWenChatClient implements ChatClient,StreamingChatClient {
 	
