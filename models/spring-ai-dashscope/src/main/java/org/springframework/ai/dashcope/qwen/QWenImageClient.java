@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope;
+package org.springframework.ai.dashcope.qwen;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.dashcope.DashCopeService;
 import org.springframework.ai.dashcope.DashCopeService.DashCopeApiException;
 import org.springframework.ai.dashcope.DashCopeService.QWenImageRequest;
 import org.springframework.ai.dashcope.DashCopeService.Input;

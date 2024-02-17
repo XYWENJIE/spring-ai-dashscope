@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope;
+package org.springframework.ai.dashcope.qwen;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -16,6 +16,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.metadata.RateLimit;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.dashcope.DashCopeService;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletion;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletionMessage;
 import org.springframework.ai.dashcope.DashCopeService.ChatCompletionRequest;

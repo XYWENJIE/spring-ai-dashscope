@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope;
+package org.springframework.ai.dashcope.qwen;
 
 import org.springframework.ai.dashcope.metadata.support.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingOptions;

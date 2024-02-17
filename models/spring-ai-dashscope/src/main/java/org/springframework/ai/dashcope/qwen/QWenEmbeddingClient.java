@@ -1,7 +1,8 @@
-package org.springframework.ai.dashcope;
+package org.springframework.ai.dashcope.qwen;
 
 import java.util.List;
 
+import org.springframework.ai.dashcope.DashCopeService;
 import org.springframework.ai.dashcope.metadata.support.EmbeddingModel;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.MetadataMode;
