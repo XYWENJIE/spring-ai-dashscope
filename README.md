@@ -6,7 +6,7 @@
 
 ### Introduction
 
-**Spring-AI-extension**A meticulously designed extension library, its core objective is to provide a seamless integration solution for the leading large language model (LLM) in China. Built upon the robust foundation of the Spring AI infrastructure, this project aims to deeply expand and enrich this ecosystem by implementing and encapsulating RESTful API interfaces of the country’s top-tier large models, thereby achieving close and efficient collaboration with the Spring AI platform. Developers can leverage this extension library to easily invoke high-performance LLM services provided by domestic operators while fully utilizing the Spring AI framework, further enhancing the application’s intelligence level and user experience.
+The **Spring-AI-extension** is a meticulously designed extension library, whose core mission is to provide a seamless integration solution for domestic leading large language models (LLM). Built on the strong Spring AI infrastructure, the project aims to deeply expand and enrich this ecosystem by implementing and encapsulating the RESTful API interfaces of the top domestic large models, thus achieving tight and efficient collaboration with the Spring AI platform. Developers can leverage this extension library to fully utilize the Spring AI framework while easily accessing high-performance large model services provided by domestic operators, further enhancing the intelligence level and user experience of their applications.
 
 ## 依赖
 
