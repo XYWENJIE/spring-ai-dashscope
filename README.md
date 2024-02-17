@@ -2,17 +2,17 @@
 	<a href="README-zh.md">中文</a>|English
 </p>
 
-# spring-ai-extension
+# Spring AI Extension
 
 ### Introduction
 
-The **Spring-AI-extension** is a meticulously designed extension library, whose core mission is to provide a seamless integration solution for domestic leading large language models (LLM). Built on the strong Spring AI infrastructure, the project aims to deeply expand and enrich this ecosystem by implementing and encapsulating the RESTful API interfaces of the top domestic large models, thus achieving tight and efficient collaboration with the Spring AI platform. Developers can leverage this extension library to fully utilize the Spring AI framework while easily accessing high-performance large model services provided by domestic operators, further enhancing the intelligence level and user experience of their applications.
+The **Spring AI Extension** is a meticulously designed extension library, whose core mission is to provide a seamless integration solution for domestic leading large language models (LLM). Built on the strong Spring AI infrastructure, the project aims to deeply expand and enrich this ecosystem by implementing and encapsulating the RESTful API interfaces of the top domestic large models, thus achieving tight and efficient collaboration with the Spring AI platform. Developers can leverage this extension library to fully utilize the Spring AI framework while easily accessing high-performance large model services provided by domestic operators, further enhancing the intelligence level and user experience of their applications.
 
-## 依赖
+## Dependencies
 
 [Spring AI](https://github.com/spring-projects/spring-ai)
 
-##功能特性
+## Functional Features
 
 **Support QWen Model**
 

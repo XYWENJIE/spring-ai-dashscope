@@ -1,4 +1,4 @@
-# spring-ai-extension
+# Spring AI Extension
 
 ### 项目简介
 
