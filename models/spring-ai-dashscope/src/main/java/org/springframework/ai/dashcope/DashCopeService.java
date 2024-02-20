@@ -132,14 +132,15 @@ public class DashCopeService {
 			@JsonProperty("parameters") Parameters parameters) {
 		
 		public ChatCompletionRequest(List<ChatCompletionMessage> messages,String model,Float temperature) {
-			this(model,new Input(null, messages),new Parameters("message", null, null, null, null, null, temperature, null, null));
+			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null));
 		}
 	}
 	
 	@JsonInclude(Include.NON_NULL)
 	public record Input(
 			@JsonProperty("prompt") String prompt,
-			@JsonProperty("messages") List<ChatCompletionMessage> messages) {
+			@JsonProperty("messages") List<ChatCompletionMessage> messages,
+			@JsonProperty("texts")List<String> texts) {
 		
 	}
 	
@@ -160,7 +161,12 @@ public class DashCopeService {
 			@JsonProperty("repetition_penalty")Float repetitionPenlty,
 			@JsonProperty("temperature") Float temperature,
 			@JsonProperty("stop")List<String> stop,
-			@JsonProperty("incremental_output")Boolean incrementalOutput) {	
+			@JsonProperty("incremental_output")Boolean incrementalOutput,
+			@JsonProperty("text_type")String textType) {	
+		
+		public Parameters(String textType) {
+			this(null,null,null,null,null,null,null,null, null, textType);
+		}
 	}
 	
 	@JsonInclude(Include.NON_NULL)
@@ -185,7 +191,14 @@ public class DashCopeService {
 			@JsonProperty("task_id") String taskId,
 			@JsonProperty("task_status") StatusStatus taskStatus,
 			@JsonProperty("task_metrics") TaskMetrices taskMetrices,
-			@JsonProperty("results") List<Results> results) {
+			@JsonProperty("results") List<Results> results,
+			@JsonProperty("embeddings") List<Embedding> embeddings) {
+		
+	}
+	
+	public record Embedding(
+			@JsonProperty("text_index")Integer textIndex,
+			@JsonProperty("embedding") List<Double> embedding) {
 		
 	}
 	
@@ -235,6 +248,20 @@ public class DashCopeService {
 		
 	}
 	
+	@JsonInclude(Include.NON_NULL)
+	public record EmbeddingRequest(
+			String model,Input input,Parameters parameters) {
+		
+		public EmbeddingRequest(String model,List<String> texts,String textType) {
+			this(model, new Input(null, null,texts), new Parameters(textType));
+		}
+	}
+	
+	public record EmbeddingResponse(
+			String requestId,Usage usage,Output output) {
+		
+	}
+	
 	public enum StatusStatus{
 		PENDING,RUNNING,SUCCEEDED,FAILED,UNKNOWN,
 	}
@@ -263,6 +290,13 @@ public class DashCopeService {
 	
 	public ResponseEntity<QWenImageResponse> findImageTaskResult(String taskId){
 		return this.restClient.get().uri("/api/v1/tasks/{task_id}",taskId).retrieve().toEntity(QWenImageResponse.class);
+	}
+	
+	public ResponseEntity<EmbeddingResponse> embeddingRequest(EmbeddingRequest embeddingRequest) {
+		return this.restClient.post()
+				.uri("/api/v1/services/embeddings/text-embedding/text-embedding")
+				.body(embeddingRequest).retrieve()
+				.toEntity(EmbeddingResponse.class);
 	}
 	
 	public static void main(String[] args) throws JsonProcessingException {

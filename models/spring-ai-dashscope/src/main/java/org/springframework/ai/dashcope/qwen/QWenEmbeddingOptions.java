@@ -33,5 +33,9 @@ public class QWenEmbeddingOptions implements EmbeddingOptions{
 			return this.embeddingOptions;
 		}
 	}
+	
+	public EmbeddingModel getModel() {
+		return model;
+	}
 
 }
