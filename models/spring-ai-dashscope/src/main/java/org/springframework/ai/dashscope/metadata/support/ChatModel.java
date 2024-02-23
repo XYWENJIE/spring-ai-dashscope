@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope.metadata.support;
+package org.springframework.ai.dashscope.metadata.support;
 
 public enum ChatModel {
 	QWen_1_8B_CHAT("qwen-1.8b-chat"),

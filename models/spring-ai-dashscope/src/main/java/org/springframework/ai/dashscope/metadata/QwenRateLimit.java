@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope.metadata;
+package org.springframework.ai.dashscope.metadata;
 
 import java.time.Duration;
 

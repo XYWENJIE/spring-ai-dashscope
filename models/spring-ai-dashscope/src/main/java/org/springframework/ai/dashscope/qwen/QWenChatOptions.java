@@ -1,7 +1,7 @@
-package org.springframework.ai.dashcope.qwen;
+package org.springframework.ai.dashscope.qwen;
 
 import org.springframework.ai.chat.ChatOptions;
-import org.springframework.ai.dashcope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.metadata.support.ChatModel;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

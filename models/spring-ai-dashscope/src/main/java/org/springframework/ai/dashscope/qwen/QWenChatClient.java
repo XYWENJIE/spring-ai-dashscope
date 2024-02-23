@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope.qwen;
+package org.springframework.ai.dashscope.qwen;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -16,12 +16,8 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.metadata.RateLimit;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.dashcope.DashCopeService;
-import org.springframework.ai.dashcope.DashCopeService.ChatCompletion;
-import org.springframework.ai.dashcope.DashCopeService.ChatCompletionMessage;
-import org.springframework.ai.dashcope.DashCopeService.ChatCompletionRequest;
-import org.springframework.ai.dashcope.metadata.support.ChatModel;
-import org.springframework.ai.model.ModelOptionsUtils;
+import org.springframework.ai.dashscope.DashsCopeService;
+import org.springframework.ai.dashscope.metadata.support.ChatModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
 
@@ -35,15 +31,15 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenChatClient.class);
 	
-	private final DashCopeService dashCopeService;
+	private final DashsCopeService dashCopeService;
 	
 	private QWenChatOptions defaultChatOptions;
 	
-	public QWenChatClient(DashCopeService dashCopeService) {
+	public QWenChatClient(DashsCopeService dashCopeService) {
 		this(dashCopeService, QWenChatOptions.builder().withModel(ChatModel.QWen_72B_CHAT).withTemperature(0.7f).build());
 	}
 	
-	public QWenChatClient(DashCopeService dashCopeService,QWenChatOptions qWenChatOptions) {
+	public QWenChatClient(DashsCopeService dashCopeService, QWenChatOptions qWenChatOptions) {
 		this.dashCopeService = dashCopeService;
 		this.defaultChatOptions = qWenChatOptions;
 	}
@@ -58,7 +54,7 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	public ChatResponse call(Prompt prompt) {
 		return this.retryTemplate.execute(ctx -> {
 			
-			ResponseEntity<ChatCompletion> completionEntity = this.dashCopeService.chatCompletionEntity(createRequest(prompt));
+			ResponseEntity<DashsCopeService.ChatCompletion> completionEntity = this.dashCopeService.chatCompletionEntity(createRequest(prompt));
 			
 			var chatCompletion = completionEntity.getBody();
 			if(chatCompletion == null) {
@@ -80,7 +76,7 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 	public Flux<ChatResponse> stream(Prompt prompt) {
 		return this.retryTemplate.execute(ctx -> {
 			
-			Flux<ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(createRequest(prompt));
+			Flux<DashsCopeService.ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(createRequest(prompt));
 			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap();
 			
 			return completionChunks.map(chunk -> {
@@ -100,14 +96,14 @@ public class QWenChatClient implements ChatClient,StreamingChatClient {
 		});
 	}
 	
-	private ChatCompletionRequest createRequest(Prompt prompt) {
+	private DashsCopeService.ChatCompletionRequest createRequest(Prompt prompt) {
 		List<Message> messages = prompt.getInstructions();
-		List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
-				.map(m -> new ChatCompletionMessage(m.getMessageType().getValue(),
+		List<DashsCopeService.ChatCompletionMessage> chatCompletionMessages = messages.stream()
+				.map(m -> new DashsCopeService.ChatCompletionMessage(m.getMessageType().getValue(),
 						m.getContent()))
 				.toList();
 		
-		ChatCompletionRequest request  = new ChatCompletionRequest(chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
+		DashsCopeService.ChatCompletionRequest request  = new DashsCopeService.ChatCompletionRequest(chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
 		return request;
 	}
 

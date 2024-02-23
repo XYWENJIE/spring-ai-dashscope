@@ -1,6 +1,6 @@
-package org.springframework.ai.dashcope.qwen;
+package org.springframework.ai.dashscope.qwen;
 
-import org.springframework.ai.dashcope.metadata.support.EmbeddingModel;
+import org.springframework.ai.dashscope.metadata.support.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingOptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

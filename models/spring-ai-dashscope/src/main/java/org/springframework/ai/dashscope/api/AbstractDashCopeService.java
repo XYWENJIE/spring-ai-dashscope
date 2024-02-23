@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope.api;
+package org.springframework.ai.dashscope.api;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

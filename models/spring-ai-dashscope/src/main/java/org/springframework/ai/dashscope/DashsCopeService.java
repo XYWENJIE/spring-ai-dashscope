@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope;
+package org.springframework.ai.dashscope;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,9 +27,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Flux;
 
-public class DashCopeService {
+public class DashsCopeService {
 	
-	private final Logger logger = LoggerFactory.getLogger(DashCopeService.class);
+	private final Logger logger = LoggerFactory.getLogger(DashsCopeService.class);
 
 	private final String baseUrl = "https://dashscope.aliyuncs.com";
 
@@ -39,7 +39,7 @@ public class DashCopeService {
 	
 	private final ObjectMapper objectMapper;
 
-	public DashCopeService(String accessToken) {
+	public DashsCopeService(String accessToken) {
 		
 		this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		Consumer<HttpHeaders> jsonContentHeaders = headers -> {
@@ -94,7 +94,7 @@ public class DashCopeService {
 	
 	public class LogHttpRequestInterceptor implements ClientHttpRequestInterceptor{
 		
-		private final Logger logger = LoggerFactory.getLogger(DashCopeService.class);
+		private final Logger logger = LoggerFactory.getLogger(DashsCopeService.class);
 
 		@Override
 		public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
@@ -134,6 +134,15 @@ public class DashCopeService {
 		public ChatCompletionRequest(List<ChatCompletionMessage> messages,String model,Float temperature) {
 			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null));
 		}
+	}
+
+	@JsonInclude(Include.NON_NULL)
+	public record ChatGLMRequest(){
+
+	}
+
+	public record CharGLMResponse(){
+
 	}
 	
 	@JsonInclude(Include.NON_NULL)
@@ -297,6 +306,10 @@ public class DashCopeService {
 				.uri("/api/v1/services/embeddings/text-embedding/text-embedding")
 				.body(embeddingRequest).retrieve()
 				.toEntity(EmbeddingResponse.class);
+	}
+
+	public ResponseEntity<CharGLMResponse> chatGLMEntity(ChatGLMRequest chatGLMRequest){
+		return this.restClient.post().uri("").body(chatGLMRequest).retrieve().toEntity(CharGLMResponse.class);
 	}
 	
 	public static void main(String[] args) throws JsonProcessingException {
