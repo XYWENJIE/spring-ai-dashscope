@@ -1,9 +1,10 @@
-package org.springframework.ai.dashcope.image;
+package org.springframework.ai.dashscope.image;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.dashcope.DashCopeTestConfiguration;
+import org.springframework.ai.dashscope.DashsCopeTestConfiguration;
 import org.springframework.ai.image.ImageClient;
 import org.springframework.ai.image.ImageOptions;
 import org.springframework.ai.image.ImageOptionsBuilder;
@@ -12,7 +13,8 @@ import org.springframework.ai.image.ImageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(classes = {DashCopeTestConfiguration.class})
+@SpringBootTest(classes = {DashsCopeTestConfiguration.class})
+@EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY", matches = ".+")
 public class QWenImageClientIT {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenImageClientIT.class);

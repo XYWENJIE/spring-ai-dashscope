@@ -1,4 +1,4 @@
-package org.springframework.ai.dashcope.embedding;
+package org.springframework.ai.dashscope.embedding;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,8 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.dashcope.chat.QwenChatClientIT;
-import org.springframework.ai.dashcope.qwen.QWenEmbeddingClient;
+import org.springframework.ai.dashscope.qwen.QWenEmbeddingClient;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
