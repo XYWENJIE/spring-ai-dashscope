@@ -5,12 +5,31 @@
 
 	<groupId>org.xywenjie.spring-ai-extension</groupId>
 	<artifactId>spring-ai-extension</artifactId>
-	<version>0.8.0-SNAPSHOT</version>
+	<version>0.8.1</version>
 	<packaging>pom</packaging>
+	
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
 
 	<properties>
-		<spring-ai.version>0.8.0-SNAPSHOT</spring-ai.version>
-		<spring-boot.version>3.2.2</spring-boot.version>
+		<spring-ai.version>0.8.1</spring-ai.version>
+		<spring-boot.version>3.2.4</spring-boot.version>
 	</properties>
 	
 	<build>
@@ -28,6 +47,7 @@
 	</build>
 
 	<modules>
+		<module>models/spring-ai-qianfan</module>
 		<module>models/spring-ai-dashscope</module>
 	</modules>
 	

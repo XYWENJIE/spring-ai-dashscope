@@ -1,8 +1,8 @@
-package org.springframework.ai.dashcope.llama2.api;
+package org.springframework.ai.dashscope.llama2.api;
 
-import org.springframework.ai.dashcope.api.AbstractDashCopeService;
-import org.springframework.ai.dashcope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatRequest;
-import org.springframework.ai.dashcope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatResponse;
+import org.springframework.ai.dashscope.api.AbstractDashCopeService;
+import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatRequest;
+import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatResponse;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

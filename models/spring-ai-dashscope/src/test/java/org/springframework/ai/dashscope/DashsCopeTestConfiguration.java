@@ -12,7 +12,6 @@ import org.springframework.boot.SpringBootConfiguration;
 public class DashsCopeTestConfiguration {
 	
 	private String getApiKey() {
-		System.out.println(System.getenv());
 		String apiKey = System.getenv("DASHSCOPE_API_KEY");
 		if(!StringUtils.hasText(apiKey)) {
 			throw new IllegalArgumentException("你必须提供一个API密钥。请将其放入名为DASHSCOPE_API_KEY的环境变量中。");

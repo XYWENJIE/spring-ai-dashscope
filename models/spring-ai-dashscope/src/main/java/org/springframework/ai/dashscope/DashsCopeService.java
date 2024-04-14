@@ -21,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -132,7 +133,7 @@ public class DashsCopeService {
 			@JsonProperty("parameters") Parameters parameters) {
 		
 		public ChatCompletionRequest(List<ChatCompletionMessage> messages,String model,Float temperature) {
-			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null));
+			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null,null));
 		}
 	}
 
@@ -155,8 +156,43 @@ public class DashsCopeService {
 	
 	@JsonInclude(Include.NON_NULL)
 	public record ChatCompletionMessage(
-			@JsonProperty("role")String role,
-			@JsonProperty("content")String content) {
+			@JsonProperty("content")String content,
+			@JsonProperty("role") Role role,
+			@JsonProperty("name") String name,
+			@JsonProperty("tool_call_id") String toolCallId,
+			@JsonProperty("tool_calls") List<ToolCall> toolCalls) {
+		
+		public ChatCompletionMessage(Object content,Role role) {
+			this(content.toString(), role, null,null,null);
+		}
+		
+		public enum Role {
+			@JsonProperty("system") SYSTEM,
+			@JsonProperty("user") USER,
+			@JsonProperty("assistant") ASSISTANT,
+			@JsonProperty("tool") TOOL
+		}
+		
+		@JsonInclude(Include.NON_NULL)
+		public record MediaContent(
+				@JsonProperty("type") String type,
+				@JsonProperty("text") String text,
+				@JsonProperty("imager_url") ImagerUrl imagerUrl) {
+			
+			@JsonInclude(Include.NON_NULL)
+			public record ImagerUrl(
+					@JsonProperty("url") String url,
+					@JsonProperty("detail") String detail) {
+				
+				public ImagerUrl(String url) {
+					this(url, null);
+				}
+			}
+			
+			public MediaContent(String text) {
+				this("text",text,null);
+			}
+		}
 		
 	}
 	
@@ -171,10 +207,11 @@ public class DashsCopeService {
 			@JsonProperty("temperature") Float temperature,
 			@JsonProperty("stop")List<String> stop,
 			@JsonProperty("incremental_output")Boolean incrementalOutput,
+			@JsonProperty("tools") List<FunctionTool> tools,
 			@JsonProperty("text_type")String textType) {	
 		
 		public Parameters(String textType) {
-			this(null,null,null,null,null,null,null,null, null, textType);
+			this(null,null,null,null,null,null,null,null, null,null, textType);
 		}
 	}
 	
@@ -213,7 +250,7 @@ public class DashsCopeService {
 	
 	@JsonInclude(Include.NON_NULL)
 	public record Choise(
-			@JsonProperty("finish_reason")String finishReason,
+			@JsonProperty("finish_reason")ChatCompletionFinishReason finishReason,
 			@JsonProperty("message") ChatCompletionMessage message) {
 		
 	}
@@ -225,6 +262,41 @@ public class DashsCopeService {
 			@JsonProperty("input_tokens")Integer inputToken,
 			@JsonProperty("image_count")Integer imageCount) {
 	}
+	
+	@JsonInclude(Include.NON_NULL)
+	public record FunctionTool(
+			@JsonProperty("type") String type,
+			@JsonProperty("function") Function function ) {}
+	
+	public record Function(
+			@JsonProperty("name") String name,
+			@JsonProperty("description") String description,
+			@JsonProperty("parameters") FunctionParameters parameters) {}
+	
+	public record FunctionParameters(
+			@JsonProperty("type") String type,
+			@JsonProperty("properties") Properties properties,
+			@JsonProperty("required") List<String> required) {}
+	
+	public record Properties(
+			@JsonProperty("location") Location location,
+			@JsonProperty("unit") Unit unit) {}
+	
+	public record Location(
+			@JsonProperty("type")String type,
+			@JsonProperty("description") String description) {}
+	
+	public record Unit(
+			@JsonProperty("type") String type,
+			@JsonProperty("enum") List<String> enums) {}
+	
+	public record ToolCall(
+			@JsonProperty("function") ChatCompletionFunction function,
+			@JsonProperty("type") String type) {}
+	
+	public record ChatCompletionFunction(
+			@JsonProperty("name")String name,
+			@JsonProperty("arguments") String arguments) {}
 	
 	@JsonInclude(Include.NON_NULL)
 	public record QWenImageRequest(
@@ -273,6 +345,10 @@ public class DashsCopeService {
 	
 	public enum StatusStatus{
 		PENDING,RUNNING,SUCCEEDED,FAILED,UNKNOWN,
+	}
+	
+	public enum ChatCompletionFinishReason{
+		@JsonProperty("tool_calls") TOOL_CALLS
 	}
 	
 	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest){
