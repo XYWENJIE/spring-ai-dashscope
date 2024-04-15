@@ -44,7 +44,7 @@ public class QWenImageClient implements ImageClient {
 			
 			String instructions = imagePrompt.getInstructions().get(0).getText();
 			
-			DashsCopeService.QWenImageRequest imageRequest = new DashsCopeService.QWenImageRequest(new DashsCopeService.Input(instructions,null,null), null);
+			DashsCopeService.QWenImageRequest imageRequest = new DashsCopeService.QWenImageRequest(new DashsCopeService.QWenImageRequest.Input(instructions,null,null), null);
 			ResponseEntity<DashsCopeService.QWenImageResponse> responseEntity = this.dashCopeService.createQwenImageTask(imageRequest);
 			return responseEntity.getBody();
 		});

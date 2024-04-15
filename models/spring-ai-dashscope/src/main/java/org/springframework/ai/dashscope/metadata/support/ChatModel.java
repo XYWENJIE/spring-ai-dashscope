@@ -8,7 +8,9 @@ public enum ChatModel {
 	QWen_72B_CHAT("qwen-72b-chat"),
 	QWen1_5_7B_CHAT("qwen1.5-7b-chat"),
 	QWen1_5_14B_CHAT("qwen1.5-14b-chat"),
-	QWen1_5_72B_CHAT("qwen1.5-72b-chat");
+	QWen1_5_72B_CHAT("qwen1.5-72b-chat"),
+
+	QWen_TURBO("qwen-turbo");
 	
 	private String modelValue;
 

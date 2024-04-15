@@ -2,8 +2,10 @@ package org.springframework.ai.dashscope.chat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -12,11 +14,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.Generation;
+import org.springframework.ai.chat.StreamingChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.DashsCopeTestConfiguration;
+import org.springframework.ai.dashscope.api.tool.MockWeatherService;
+import org.springframework.ai.dashscope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.qwen.QWenChatOptions;
+import org.springframework.ai.model.function.FunctionCallbackWrapper;
 import org.springframework.ai.parser.ListOutputParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +34,7 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import reactor.core.publisher.Flux;
 
 @SpringBootTest(classes = {DashsCopeTestConfiguration.class})
 @EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY",matches = ".+")
@@ -36,6 +46,9 @@ public class QwenChatClientIT {
 	
 	@Autowired
 	private ChatClient chatClient;
+
+	@Autowired
+	private StreamingChatClient streamingChatClient;
 	
 	/**
 	 * 测试用例-将阿里云返回JSON字符串反序列化成ChatCompletion
@@ -78,6 +91,49 @@ public class QwenChatClientIT {
 		
 		List<String> list = listOutputParser.parse(generation.getOutput().getContent());
 		assertThat(list).hasSize(5);
+	}
+	
+	@Test
+	public void functionCallTest() {
+		UserMessage userMessage = new UserMessage("我想查询这几个城市天气 旧金山,东京,和巴黎?");
+		List<Message> messages = new ArrayList<>(List.of(userMessage));
+		
+		var promptOption = QWenChatOptions.builder().withModel(ChatModel.QWen_TURBO)
+				.withFunctionCallbacks(List.of(FunctionCallbackWrapper.builder(new MockWeatherService())
+						.withName("getCurrentWeather")
+						.withDescription("Get the weather in location")
+						.withResponseConverter((response) -> {
+							logger.info("withResponseConverter");
+							return  "location："+response.location() +";Temperature:"+response.temp() + ";Temperature unit:" + response.unit().unitName;
+						})
+						.build()))
+				.build();
+		ChatResponse chatResponse = chatClient.call(new Prompt(messages,promptOption));
+		
+		//logger.info("Response:{}",chatResponse);
+		logger.info("AI回答:{}",chatResponse.getResult().getOutput().getContent());
+	}
+
+	@Test
+	public void streamFunctionCallTest(){
+
+		UserMessage userMessage = new UserMessage("我想查询这几个城市天气 旧金山,东京,和巴黎?");
+
+		List<Message> messages = new ArrayList<>(List.of(userMessage));
+		var promptOption = QWenChatOptions.builder().withModel(ChatModel.QWen_TURBO)
+				.withFunctionCallbacks(List.of(FunctionCallbackWrapper.builder(new MockWeatherService())
+						.withName("getCurrentWeather")
+						.withDescription("Get the weather in location")
+						.withResponseConverter((response) -> {
+							logger.info("withResponseConverter");
+							return  "location："+response.location() +";Temperature:"+response.temp() + ";Temperature unit:" + response.unit().unitName;
+						}).build()))
+				.build();
+		Flux<ChatResponse> chatResponse = streamingChatClient.stream(new Prompt(messages,promptOption));
+
+		String content = chatResponse.collectList().block().stream().map(ChatResponse::getResults).flatMap(List::stream).map(Generation::getOutput).map(AssistantMessage::getContent).collect(Collectors.joining());
+		logger.info("AI:{}",content);
+
 	}
 
 }

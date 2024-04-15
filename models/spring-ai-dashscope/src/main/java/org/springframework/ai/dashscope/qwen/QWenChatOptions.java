@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.ai.dashscope.DashsCopeService;
+import org.springframework.ai.dashscope.DashsCopeService.FunctionTool;
 import org.springframework.ai.dashscope.metadata.support.ChatModel;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.model.function.FunctionCallingOptions;
@@ -23,6 +25,11 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 	private @JsonProperty("model") ChatModel model;
 	
 	private @JsonProperty("temperature") Float temperature = 0.7F;
+	
+	@NestedConfigurationProperty
+	private @JsonProperty("tools") List<FunctionTool> tools;
+
+	private @JsonProperty("parameters") DashsCopeService.Parameters parameters;
 	
 	@NestedConfigurationProperty
 	@JsonIgnore
@@ -50,8 +57,13 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 			return this;
 		}
 		
-		public Builder withTemperature(Float templerature) {
-			this.options.temperature = templerature;
+		public Builder withTemperature(Float temperature) {
+			this.options.temperature = temperature;
+			return this;
+		}
+		
+		public Builder withTools(List<FunctionTool> tools) {
+			this.options.tools = tools;
 			return this;
 		}
 		
@@ -73,13 +85,17 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 		}
 		
 		public QWenChatOptions build() {
+			this.options.parameters = new DashsCopeService.Parameters("message",null,null,null,null,null,0.7F,null,null,this.options.tools,null);
 			return this.options;
 		}
 		
 	}
 	
 	public String getModel() {
-		return model.getModelValue();
+		if(model != null){
+			return model.getModelValue();
+		}
+		return null;
 	}
 
 	public void setModel(ChatModel model) {
@@ -101,6 +117,7 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 
 
 	@Override
+	@JsonIgnore
 	public Integer getTopK() {
 		throw new UnsupportedOperationException("Unimplemented method 'getTopK'");
 	}

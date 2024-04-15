@@ -1,19 +1,22 @@
 package org.springframework.ai.dashscope;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.ai.model.ModelOptionsUtils;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,6 +30,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public class DashsCopeService {
 	
@@ -63,7 +67,7 @@ public class DashsCopeService {
 								objectMapper.readValue(response.getBody(), ResponseError.class)));
 					}
 					throw new DashCopeApiException(String.format("%s - %s", response.getStatusCode().value(),
-							objectMapper.readValue(response.getBody(), ResponseEntity.class)));
+							objectMapper.readValue(response.getBody(), ResponseError.class)));
 				}
 			}
 		};
@@ -73,7 +77,10 @@ public class DashsCopeService {
 				.requestInterceptor(new LogHttpRequestInterceptor())
 				.defaultStatusHandler(responseErrorHandler)
 				.build();
-		this.webClient = WebClient.builder().baseUrl(baseUrl).build();
+		this.webClient = WebClient.builder().baseUrl(baseUrl).defaultHeaders(jsonContentHeaders).defaultHeaders(httpHeaders -> {
+			httpHeaders.setAccept(List.of(MediaType.TEXT_EVENT_STREAM));
+			httpHeaders.set("X-DashScope-SSE","enable");
+		}).build();
 	}
 	
 	public static class DashCopeApiException extends RuntimeException {
@@ -119,13 +126,30 @@ public class DashsCopeService {
 			return httpResponse;
 		}
 	}
-	
+
+	/**
+	 * ResponseError 类是一个记录类（Java 14+ 新特性），用于封装错误响应信息。
+	 * 它通过 Jackson 序列化注解来控制 JSON 序列化的行为，确保只有非空字段被包含在 JSON 中。
+	 *
+	 * @param code 错误代码，对应错误的唯一标识。
+	 * @param message 错误消息，描述错误的详细信息。
+	 * @param requestId 请求标识，用于追踪和记录请求。
+	 */
 	@JsonInclude(Include.NON_NULL)
 	public record ResponseError(
 			@JsonProperty("code")String code,
 			@JsonProperty("message") String message,
 			@JsonProperty("request_id")String requestId) {}
 
+
+
+	/**
+	 * ChatCompletionRequest 类是一个记录类，用于表示聊天完成请求的数据结构。
+	 * 它包含以下字段：
+	 * @param model 指定用于聊天完成的模型名称。
+	 * @param input 表示聊天的输入内容，包含具体的对话信息。
+	 * @param parameters 包含聊天完成请求的额外参数，可选。
+	 */
 	@JsonInclude(Include.NON_NULL)
 	public record ChatCompletionRequest(
 			@JsonProperty("model") String model,
@@ -134,6 +158,18 @@ public class DashsCopeService {
 		
 		public ChatCompletionRequest(List<ChatCompletionMessage> messages,String model,Float temperature) {
 			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null,null));
+		}
+		
+		public ChatCompletionRequest(Input input,String model,Parameters parameters) {
+			this(model, input, parameters);
+		}
+
+		@JsonInclude(Include.NON_NULL)
+		public record Input(
+				@JsonProperty("prompt") String prompt,
+				@JsonProperty("messages") List<ChatCompletionMessage> messages,
+				@JsonProperty("texts")List<String> texts) {
+
 		}
 	}
 
@@ -144,14 +180,6 @@ public class DashsCopeService {
 
 	public record CharGLMResponse(){
 
-	}
-	
-	@JsonInclude(Include.NON_NULL)
-	public record Input(
-			@JsonProperty("prompt") String prompt,
-			@JsonProperty("messages") List<ChatCompletionMessage> messages,
-			@JsonProperty("texts")List<String> texts) {
-		
 	}
 	
 	@JsonInclude(Include.NON_NULL)
@@ -175,22 +203,11 @@ public class DashsCopeService {
 		
 		@JsonInclude(Include.NON_NULL)
 		public record MediaContent(
-				@JsonProperty("type") String type,
-				@JsonProperty("text") String text,
-				@JsonProperty("imager_url") ImagerUrl imagerUrl) {
-			
-			@JsonInclude(Include.NON_NULL)
-			public record ImagerUrl(
-					@JsonProperty("url") String url,
-					@JsonProperty("detail") String detail) {
-				
-				public ImagerUrl(String url) {
-					this(url, null);
-				}
-			}
+				@JsonProperty("image") String type,
+				@JsonProperty("text") String text) {
 			
 			public MediaContent(String text) {
-				this("text",text,null);
+				this("text",text);
 			}
 		}
 		
@@ -233,7 +250,7 @@ public class DashsCopeService {
 	public record Output(
 			@JsonProperty("finish_reason")String finishReason,
 			@JsonProperty("text") String text,
-			@JsonProperty("choices") List<Choise> choise,
+			@JsonProperty("choices") List<Choices> choices,
 			@JsonProperty("task_id") String taskId,
 			@JsonProperty("task_status") StatusStatus taskStatus,
 			@JsonProperty("task_metrics") TaskMetrices taskMetrices,
@@ -249,9 +266,10 @@ public class DashsCopeService {
 	}
 	
 	@JsonInclude(Include.NON_NULL)
-	public record Choise(
+	public record Choices(
 			@JsonProperty("finish_reason")ChatCompletionFinishReason finishReason,
-			@JsonProperty("message") ChatCompletionMessage message) {
+			@JsonProperty("message") ChatCompletionMessage message,
+			@JsonProperty("tool_calls") ToolCall toolCall) {
 		
 	}
 	
@@ -265,13 +283,34 @@ public class DashsCopeService {
 	
 	@JsonInclude(Include.NON_NULL)
 	public record FunctionTool(
-			@JsonProperty("type") String type,
-			@JsonProperty("function") Function function ) {}
+			@JsonProperty("type") Type type,
+			@JsonProperty("function") Function function ) {
+		
+		public FunctionTool(Function function) {
+			this(Type.FUNCTION,function);
+		}
+		
+		public enum Type{
+			@JsonProperty("function") FUNCTION
+		}
+		
+		@JsonInclude(Include.NON_NULL)
+		public record Function(
+				@JsonProperty("name") String name,
+				@JsonProperty("description") String description,
+				@JsonProperty("parameters") Map<String,Object> parameters) {
+
+			@ConstructorBinding
+			public Function(String name,String description,String jsonSchema) {
+				this(name, description, ModelOptionsUtils.jsonToMap(jsonSchema));
+			}
+
+		}
+
+
+	}
 	
-	public record Function(
-			@JsonProperty("name") String name,
-			@JsonProperty("description") String description,
-			@JsonProperty("parameters") FunctionParameters parameters) {}
+	
 	
 	public record FunctionParameters(
 			@JsonProperty("type") String type,
@@ -306,6 +345,14 @@ public class DashsCopeService {
 		public QWenImageRequest(Input input,Parameters parameters) {
 			this("wanx-v1",input,parameters);
 		}
+
+		@JsonInclude(Include.NON_NULL)
+		public record Input(
+				@JsonProperty("prompt") String prompt,
+				@JsonProperty("messages") List<ChatCompletionMessage> messages,
+				@JsonProperty("texts")List<String> texts) {
+
+		}
 	}
 	
 	@JsonInclude(Include.NON_NULL)
@@ -336,6 +383,14 @@ public class DashsCopeService {
 		public EmbeddingRequest(String model,List<String> texts,String textType) {
 			this(model, new Input(null, null,texts), new Parameters(textType));
 		}
+
+		@JsonInclude(Include.NON_NULL)
+		public record Input(
+				@JsonProperty("prompt") String prompt,
+				@JsonProperty("messages") List<ChatCompletionMessage> messages,
+				@JsonProperty("texts")List<String> texts) {
+
+		}
 	}
 	
 	public record EmbeddingResponse(
@@ -348,22 +403,31 @@ public class DashsCopeService {
 	}
 	
 	public enum ChatCompletionFinishReason{
+		@JsonProperty("null") NULL,
+		@JsonProperty("stop") STOP,
 		@JsonProperty("tool_calls") TOOL_CALLS
 	}
 	
 	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
 		logger.info("开始提交参数"+chatRequest.toString());
-		return this.restClient.post()
+		ResponseEntity<String> jsonResponse =  this.restClient.post()
 				.uri("/api/v1/services/aigc/text-generation/generation")
-				.body(chatRequest).retrieve().toEntity(ChatCompletion.class);
-	}
+				.body(chatRequest).retrieve().toEntity(String.class);
+		String jsonBody = jsonResponse.getBody();
+		logger.info("返回JSON:{}",jsonBody);
+        try {
+            return new ResponseEntity<>(objectMapper.readValue(jsonBody, ChatCompletion.class), HttpStatus.OK);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 	
 	public Flux<ChatCompletion> chatCompletionStream(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
 		return this.webClient.post()
 				.uri("/api/v1/services/aigc/text-generation/generation")
-				.body(chatRequest,ChatCompletion.class).retrieve().bodyToFlux(ChatCompletion.class);
+				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(ChatCompletion.class);
 	}
 	
 	public ResponseEntity<QWenImageResponse> createQwenImageTask(QWenImageRequest qwenImageRequest) {
