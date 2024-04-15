@@ -38,7 +38,7 @@ mvn clean install
 <dependency>
 	<groupId>org.xywenjie.spring-ai-extension</groupId>
 	<artifactId>spring-ai-dashscope</artifactId>
-	<version>0.8.0-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 </dependency>
 ~~~
 

@@ -2,6 +2,7 @@ package org.springframework.ai.dashscope.chat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.StreamingChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Media;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -34,6 +36,8 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.MimeTypeUtils;
 import reactor.core.publisher.Flux;
 
 @SpringBootTest(classes = {DashsCopeTestConfiguration.class})
@@ -134,6 +138,21 @@ public class QwenChatClientIT {
 		String content = chatResponse.collectList().block().stream().map(ChatResponse::getResults).flatMap(List::stream).map(Generation::getOutput).map(AssistantMessage::getContent).collect(Collectors.joining());
 		logger.info("AI:{}",content);
 
+	}
+
+
+	@Test
+	void multiModalityEmbeddedImage() {
+
+
+		var userMessage = new UserMessage("Explain what do you see on this picture?",
+				List.of(new Media(MimeTypeUtils.IMAGE_PNG, "https://bkimg.cdn.bcebos.com/pic/a686c9177f3e67096d187aa634c79f3df8dc554a?x-bce-process=image/format,f_auto/watermark,image_d2F0ZXIvYmFpa2UyNzI,g_7,xp_5,yp_5,P_20/resize,m_lfit,limit_1,h_1080")));
+
+		ChatResponse response = chatClient.call(new Prompt(List.of(userMessage),
+				QWenChatOptions.builder().withModel(ChatModel.QWen_VL_PLUS).build()));
+
+		logger.info(response.getResult().getOutput().getContent());
+		assertThat(response.getResult().getOutput().getContent()).contains("bananas", "apple");
 	}
 
 }

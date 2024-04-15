@@ -153,16 +153,15 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 	}
 	
 	public ChatCompletionRequest createRequest(Prompt prompt) {
-		List<Message> messages = prompt.getInstructions();
 		Set<String> functionsForThisRequest = new HashSet<>();
-		List<ChatCompletionMessage> chatCompletionMessages = messages.stream()
-				.map(m -> {
-					List<MediaContent> contents = new ArrayList<>(List.of(new MediaContent(m.getContent())));
-					if(!CollectionUtils.isEmpty(m.getMedia())) {
-						contents.addAll(m.getMedia().stream().map(media -> new MediaContent(null)).toList());
-					}
-					return new ChatCompletionMessage(contents,ChatCompletionMessage.Role.valueOf(m.getMessageType().name()));
-				}).toList();
+		List<ChatCompletionMessage> chatCompletionMessages = prompt.getInstructions().stream().map(m -> {
+			if(!CollectionUtils.isEmpty(m.getMedia())){
+				List<MediaContent> contents = new ArrayList<>(List.of(new MediaContent(m.getContent(),null)));
+				contents.addAll(m.getMedia().stream().map(media -> new MediaContent(null,media.getData().toString())).toList());
+				return new ChatCompletionMessage(contents,ChatCompletionMessage.Role.valueOf(m.getMessageType().name()));
+			}
+			return new ChatCompletionMessage(m.getContent(),ChatCompletionMessage.Role.valueOf(m.getMessageType().name()));
+		}).toList();
 
 		ChatCompletionRequest request = new ChatCompletionRequest(chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
 		

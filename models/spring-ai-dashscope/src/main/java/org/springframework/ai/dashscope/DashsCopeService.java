@@ -3,12 +3,14 @@ package org.springframework.ai.dashscope;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.dashscope.metadata.support.ChatModel;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.http.*;
@@ -152,15 +154,15 @@ public class DashsCopeService {
 	 */
 	@JsonInclude(Include.NON_NULL)
 	public record ChatCompletionRequest(
-			@JsonProperty("model") String model,
+			@JsonProperty("model") ChatModel model,
 			@JsonProperty("input") Input input,
 			@JsonProperty("parameters") Parameters parameters) {
 		
-		public ChatCompletionRequest(List<ChatCompletionMessage> messages,String model,Float temperature) {
+		public ChatCompletionRequest(List<ChatCompletionMessage> messages,ChatModel model,Float temperature) {
 			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null,null));
 		}
 		
-		public ChatCompletionRequest(Input input,String model,Parameters parameters) {
+		public ChatCompletionRequest(Input input,ChatModel model,Parameters parameters) {
 			this(model, input, parameters);
 		}
 
@@ -184,14 +186,14 @@ public class DashsCopeService {
 	
 	@JsonInclude(Include.NON_NULL)
 	public record ChatCompletionMessage(
-			@JsonProperty("content")String content,
+			@JsonProperty("content")Object rowContent,
 			@JsonProperty("role") Role role,
 			@JsonProperty("name") String name,
 			@JsonProperty("tool_call_id") String toolCallId,
 			@JsonProperty("tool_calls") List<ToolCall> toolCalls) {
 		
-		public ChatCompletionMessage(Object content,Role role) {
-			this(content.toString(), role, null,null,null);
+		public ChatCompletionMessage(Object rowContent,Role role) {
+			this(rowContent, role, null,null,null);
 		}
 		
 		public enum Role {
@@ -203,12 +205,24 @@ public class DashsCopeService {
 		
 		@JsonInclude(Include.NON_NULL)
 		public record MediaContent(
-				@JsonProperty("image") String type,
-				@JsonProperty("text") String text) {
-			
-			public MediaContent(String text) {
-				this("text",text);
+				@JsonProperty("text") String text,
+				@JsonProperty("image") String image) {
+
+
+		}
+
+		public String content(){
+			if(this.rowContent== null){
+				return null;
 			}
+			if(this.rowContent instanceof String text){
+				return text;
+			}
+			if(this.rowContent instanceof List<?> list){
+				HashMap<String,String> content = (HashMap<String,String>)list.get(0);
+				return content.get("text");
+			}
+			throw new IllegalArgumentException("The content is not a string!");
 		}
 		
 	}
@@ -410,9 +424,10 @@ public class DashsCopeService {
 	
 	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
-		logger.info("开始提交参数"+chatRequest.toString());
+        logger.info("开始提交参数{}", chatRequest);
+		String uri = getModelSpecificURI(chatRequest.model);
 		ResponseEntity<String> jsonResponse =  this.restClient.post()
-				.uri("/api/v1/services/aigc/text-generation/generation")
+				.uri(uri)
 				.body(chatRequest).retrieve().toEntity(String.class);
 		String jsonBody = jsonResponse.getBody();
 		logger.info("返回JSON:{}",jsonBody);
@@ -425,9 +440,21 @@ public class DashsCopeService {
 	
 	public Flux<ChatCompletion> chatCompletionStream(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
+		// 添加图文识别 测试，Qwen对这方面调用比OpenAI负责
+		String uri = getModelSpecificURI(chatRequest.model);
 		return this.webClient.post()
-				.uri("/api/v1/services/aigc/text-generation/generation")
+				.uri(uri)
 				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(ChatCompletion.class);
+	}
+
+	public String getModelSpecificURI(ChatModel model){
+		switch (model){
+			case QWen_VL_PLUS:
+			case QWen_VL_MAX:
+				return "/api/v1/services/aigc/multimodal-generation/generation";
+			default:
+				return "/api/v1/services/aigc/text-generation/generation";
+		}
 	}
 	
 	public ResponseEntity<QWenImageResponse> createQwenImageTask(QWenImageRequest qwenImageRequest) {

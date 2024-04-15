@@ -91,9 +91,9 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 		
 	}
 	
-	public String getModel() {
+	public ChatModel getModel() {
 		if(model != null){
-			return model.getModelValue();
+			return model;
 		}
 		return null;
 	}

@@ -4,6 +4,7 @@ import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashscope.DashsCopeService;
+import org.springframework.ai.dashscope.metadata.support.ChatModel;
 
 public class DashsCopeChatGLMClient implements ChatClient {
 
@@ -15,7 +16,7 @@ public class DashsCopeChatGLMClient implements ChatClient {
 
     @Override
     public ChatResponse call(Prompt prompt) {
-        DashsCopeService.ChatCompletionRequest chatCompletionRequest = new DashsCopeService.ChatCompletionRequest("",null,null);
+        DashsCopeService.ChatCompletionRequest chatCompletionRequest = new DashsCopeService.ChatCompletionRequest(ChatModel.QWen_1_8B_CHAT, null,null);
         this.dashsCopeService.chatCompletionEntity(chatCompletionRequest);
         return null;
     }
