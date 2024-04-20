@@ -1,8 +1,6 @@
 package org.springframework.ai.dashscope;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +16,6 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -26,7 +23,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +75,9 @@ public class DashsCopeService {
 				.requestInterceptor(new LogHttpRequestInterceptor())
 				.defaultStatusHandler(responseErrorHandler)
 				.build();
-		this.webClient = WebClient.builder().baseUrl(baseUrl).defaultHeaders(jsonContentHeaders).defaultHeaders(httpHeaders -> {
+		this.webClient = WebClient.builder().baseUrl(baseUrl)
+				.defaultHeaders(jsonContentHeaders)
+				.defaultHeaders(httpHeaders -> {
 			httpHeaders.setAccept(List.of(MediaType.TEXT_EVENT_STREAM));
 			httpHeaders.set("X-DashScope-SSE","enable");
 		}).build();
@@ -440,6 +438,12 @@ public class DashsCopeService {
 	
 	public Flux<ChatCompletion> chatCompletionStream(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
+		logger.info("提交参数{}",chatRequest);
+		try{
+			logger.info(objectMapper.writeValueAsString(chatRequest));
+		}catch (Exception e){
+			logger.error(e.getMessage());
+		}
 		// 添加图文识别 测试，Qwen对这方面调用比OpenAI负责
 		String uri = getModelSpecificURI(chatRequest.model);
 		return this.webClient.post()

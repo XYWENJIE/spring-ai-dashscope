@@ -250,6 +250,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 		if(body == null) {
 			return false;
 		}
+		logger.info("查看参数：{}",body);
 		var choices = body.output().choices();
 		if(CollectionUtils.isEmpty(choices)) {
 			return false;
