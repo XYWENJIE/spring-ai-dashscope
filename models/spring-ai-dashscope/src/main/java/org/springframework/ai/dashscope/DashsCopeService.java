@@ -240,7 +240,7 @@ public class DashsCopeService {
 			@JsonProperty("text_type")String textType) {	
 		
 		public Parameters(String textType) {
-			this(null,null,null,null,null,null,null,null, null,null, textType);
+			this(null,null,null,null,null,null,null,null, true,null, textType);
 		}
 	}
 	
