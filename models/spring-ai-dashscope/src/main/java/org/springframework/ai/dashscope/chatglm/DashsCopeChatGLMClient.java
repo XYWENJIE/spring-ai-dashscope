@@ -16,7 +16,7 @@ public class DashsCopeChatGLMClient implements ChatClient {
 
     @Override
     public ChatResponse call(Prompt prompt) {
-        DashsCopeService.ChatCompletionRequest chatCompletionRequest = new DashsCopeService.ChatCompletionRequest(ChatModel.QWen_1_8B_CHAT, null,null);
+        DashsCopeService.ChatCompletionRequest chatCompletionRequest = new DashsCopeService.ChatCompletionRequest(false,ChatModel.QWen_1_8B_CHAT, null,null);
         this.dashsCopeService.chatCompletionEntity(chatCompletionRequest);
         return null;
     }

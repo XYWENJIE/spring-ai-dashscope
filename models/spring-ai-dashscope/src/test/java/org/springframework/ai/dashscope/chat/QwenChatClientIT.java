@@ -107,7 +107,6 @@ public class QwenChatClientIT {
 						.withName("getCurrentWeather")
 						.withDescription("Get the weather in location")
 						.withResponseConverter((response) -> {
-							logger.info("withResponseConverter");
 							return  "location："+response.location() +";Temperature:"+response.temp() + ";Temperature unit:" + response.unit().unitName;
 						})
 						.build()))

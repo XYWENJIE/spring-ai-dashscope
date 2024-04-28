@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashscope.metadata.support.ChatModel;
@@ -152,16 +153,17 @@ public class DashsCopeService {
 	 */
 	@JsonInclude(Include.NON_NULL)
 	public record ChatCompletionRequest(
+			@JsonProperty("stream") Boolean stream,
 			@JsonProperty("model") ChatModel model,
 			@JsonProperty("input") Input input,
 			@JsonProperty("parameters") Parameters parameters) {
 		
-		public ChatCompletionRequest(List<ChatCompletionMessage> messages,ChatModel model,Float temperature) {
-			this(model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null,null));
+		public ChatCompletionRequest(Boolean stream,List<ChatCompletionMessage> messages,ChatModel model,Float temperature) {
+			this(stream,model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null,null));
 		}
 		
 		public ChatCompletionRequest(Input input,ChatModel model,Parameters parameters) {
-			this(model, input, parameters);
+			this(false,model, input, parameters);
 		}
 
 		@JsonInclude(Include.NON_NULL)

@@ -79,7 +79,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 
 	@Override
 	public ChatResponse call(Prompt prompt) {
-		ChatCompletionRequest request = createRequest(prompt);
+		ChatCompletionRequest request = createRequest(prompt,false);
 		return this.retryTemplate.execute(ctx -> {
 			
 			ResponseEntity<DashsCopeService.ChatCompletion> completionEntity = this.callWithFunctionSupport(request);
@@ -118,7 +118,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 
 	@Override
 	public Flux<ChatResponse> stream(Prompt prompt) {
-		ChatCompletionRequest request = createRequest(prompt);
+		ChatCompletionRequest request = createRequest(prompt,true);
 		return this.retryTemplate.execute(ctx -> {
 			
 			Flux<DashsCopeService.ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(request);
@@ -152,7 +152,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 		});
 	}
 	
-	public ChatCompletionRequest createRequest(Prompt prompt) {
+	public ChatCompletionRequest createRequest(Prompt prompt,Boolean stream) {
 		Set<String> functionsForThisRequest = new HashSet<>();
 		List<ChatCompletionMessage> chatCompletionMessages = prompt.getInstructions().stream().map(m -> {
 			if(!CollectionUtils.isEmpty(m.getMedia())){
@@ -163,7 +163,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 			return new ChatCompletionMessage(m.getContent(),ChatCompletionMessage.Role.valueOf(m.getMessageType().name()));
 		}).toList();
 
-		ChatCompletionRequest request = new ChatCompletionRequest(chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
+		ChatCompletionRequest request = new ChatCompletionRequest(stream,chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
 		
 		if(prompt.getOptions() != null) {
 			if(prompt.getOptions() instanceof ChatOptions runtimeOptions) {
@@ -182,7 +182,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 			}
 		}
 		if(this.defaultChatOptions != null) {
-			Set<String> defaultEnabledFunctions = this.handleFunctionCallbackConfigurations(this.defaultChatOptions, !IS_RUNTIME_CALL);
+			Set<String> defaultEnabledFunctions = this.handleFunctionCallbackConfigurations(this.defaultChatOptions, IS_RUNTIME_CALL);
 			
 			functionsForThisRequest.addAll(defaultEnabledFunctions);
 			
@@ -219,7 +219,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 			conversationHistory.add(new ChatCompletionMessage(functionResponse, Role.TOOL,functionName,"call_abc123",null));
 		}
 
-		ChatCompletionRequest newRequest = new ChatCompletionRequest(conversationHistory,null,null);
+		ChatCompletionRequest newRequest = new ChatCompletionRequest(previousRequest.stream(),conversationHistory,null,null);
 		newRequest = ModelOptionsUtils.merge(newRequest,previousRequest,ChatCompletionRequest.class);
 		return newRequest;
 	}
@@ -239,7 +239,9 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 
 	@Override
 	protected ResponseEntity<ChatCompletion> doChatCompletion(ChatCompletionRequest request) {
-
+		if(request.stream()){
+			//return this.dashCopeService.chatCompletionStream(request);
+		}
 		return this.dashCopeService.chatCompletionEntity(request);
 	}
 

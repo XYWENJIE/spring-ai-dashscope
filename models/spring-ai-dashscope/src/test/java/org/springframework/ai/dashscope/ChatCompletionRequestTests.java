@@ -13,7 +13,7 @@ public class ChatCompletionRequestTests {
 		
 		var client = new QWenChatClient(new DashsCopeService(""),QWenChatOptions.builder().withModel(null).build());
 		
-		var request = client.createRequest(new Prompt("test message content"));
+		var request = client.createRequest(new Prompt("test message content"),true);
 	}
 
 }
