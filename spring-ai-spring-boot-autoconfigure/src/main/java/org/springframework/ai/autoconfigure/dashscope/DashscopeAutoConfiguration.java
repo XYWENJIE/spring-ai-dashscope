@@ -18,21 +18,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 @AutoConfiguration(after = {RestClientAutoConfiguration.class, SpringAiRetryAutoConfiguration.class})
 @ConditionalOnClass(DashsCopeService.class)
-@EnableConfigurationProperties({DashscopeProperties.class, QWenImageProperties.class,DashscopeConnectionProperties.class})
+@EnableConfigurationProperties({DashscopeProperties.class, QWenImageProperties.class,DashscopeConnectionProperties.class,DashscopeEmbeddingProperties.class})
 public class DashscopeAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DashscopeProperties.CONFIG_PREFIX,name="enabled",havingValue = "true",matchIfMissing = true)
-    public QWenChatClient qWenChatClient(DashscopeProperties dashscopeProperties, List<FunctionCallback> toolFunctionCallback,
+    public QWenChatClient qWenChatClient(DashscopeConnectionProperties commonProperties, DashscopeProperties dashscopeProperties, List<FunctionCallback> toolFunctionCallback,
                                          FunctionCallbackContext functionCallbackContext, RetryTemplate retryTemplate){
-        Assert.hasText(dashscopeProperties.getApikey(),"Dashscope阿里云的AccessToken不存在");
-        var dashsCopeService = dashsCopeService(dashscopeProperties.getApikey());
+        var dashsCopeService = dashsCopeService(dashscopeProperties.getApikey(),commonProperties.getApikey());
         if(!CollectionUtils.isEmpty(toolFunctionCallback)){
             dashscopeProperties.getOptions().getFunctionCallbacks().addAll(toolFunctionCallback);
         }
@@ -41,25 +41,26 @@ public class DashscopeAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty
-    public QWenEmbeddingClient qWenEmbeddingClient(DashscopeProperties dashscopeProperties){
-        Assert.hasText(dashscopeProperties.getApikey(),"Dashscope阿里云的AccessToken不存在");
-        var dashsCopeService = dashsCopeService(dashscopeProperties.getApikey());
+    @ConditionalOnProperty(prefix = DashscopeEmbeddingProperties.CONFIG_PREFIX,name = "enabled",havingValue = "true",
+            matchIfMissing = true)
+    public QWenEmbeddingClient qWenEmbeddingClient(DashscopeConnectionProperties commonProperties,DashscopeProperties dashscopeProperties){
+        var dashsCopeService = dashsCopeService(dashscopeProperties.getApikey(),commonProperties.getApikey());
         return new QWenEmbeddingClient(dashsCopeService);
     }
 
 
-    private DashsCopeService dashsCopeService(String accessToken){
-        return new DashsCopeService(accessToken);
+    private DashsCopeService dashsCopeService(String apikey,String commonApiKey){
+        String resolvedApiKey = StringUtils.hasText(apikey) ? apikey : commonApiKey;
+        Assert.hasText(resolvedApiKey,"Dashscope阿里云的AccessToken不存在");
+        return new DashsCopeService(resolvedApiKey);
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = QWenImageProperties.CONFIG_PREFIX,name = "enabled",havingValue = "true",
                         matchIfMissing = true)
-    public QWenImageClient qWenImageClient(QWenImageProperties qWenImageProperties){
-        Assert.hasText(qWenImageProperties.getApikey(),"Dashscope阿里云的AccessToken不存在");
-        var dashsCopeService = dashsCopeService(qWenImageProperties.getApikey());
+    public QWenImageClient qWenImageClient(DashscopeConnectionProperties commonProperties,QWenImageProperties qWenImageProperties){
+        var dashsCopeService = dashsCopeService(qWenImageProperties.getApikey(),commonProperties.getApikey());
         return new QWenImageClient(dashsCopeService);
     }
 
