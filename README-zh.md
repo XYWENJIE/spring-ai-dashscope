@@ -38,8 +38,14 @@ mvn clean install
 <dependency>
 	<groupId>org.xywenjie.spring-ai-extension</groupId>
 	<artifactId>spring-ai-dashscope</artifactId>
-	<version>0.7.0-SNAPSHOT</version>
+	<version>0.8.1</version>
 </dependency>
+~~~
+
+//TODO 未完成
+可以在Spring Boot的文件application.properties中配置
+~~~properties
+spring.ai.dashscope.api-key=你的api-key
 ~~~
 
 #### 联系
