@@ -85,7 +85,7 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 		}
 		
 		public QWenChatOptions build() {
-			this.options.parameters = new DashsCopeService.Parameters("message",null,null,null,null,null,0.7F,null,null,this.options.tools,null);
+			this.options.parameters = new DashsCopeService.Parameters("message",null,null,null,null,null,null,null,null,null,null,0.7F,null,null,this.options.tools,null);
 			return this.options;
 		}
 		

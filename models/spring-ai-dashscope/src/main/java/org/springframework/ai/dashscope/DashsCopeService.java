@@ -159,7 +159,7 @@ public class DashsCopeService {
 			@JsonProperty("parameters") Parameters parameters) {
 		
 		public ChatCompletionRequest(Boolean stream,List<ChatCompletionMessage> messages,ChatModel model,Float temperature) {
-			this(stream,model,new Input(null, messages,null),new Parameters("message", null, null, null, null, null, temperature, null, null,null,null));
+			this(stream,model,new Input(null, messages,null),new Parameters("message", null, null,null,null,null,null,null, null, null, null, temperature, null, null,null,null));
 		}
 		
 		public ChatCompletionRequest(Input input,ChatModel model,Parameters parameters) {
@@ -230,7 +230,12 @@ public class DashsCopeService {
 	@JsonInclude(Include.NON_NULL)
 	public record Parameters(
 			@JsonProperty("result_format")String resultFormat,
+			@JsonProperty("style") String style,
+			@JsonProperty("size") String size,
+			@JsonProperty("n") Integer n,
 			@JsonProperty("seed")Integer seed,
+			@JsonProperty("ref_strength") Float refStrength,
+			@JsonProperty("ref_mode") String refMode,
 			@JsonProperty("max_tokens")Integer maxTokens,
 			@JsonProperty("top_p")Float TopP,
 			@JsonProperty("top_k")Integer topK,
@@ -242,7 +247,12 @@ public class DashsCopeService {
 			@JsonProperty("text_type")String textType) {	
 		
 		public Parameters(String textType) {
-			this(null,null,null,null,null,null,null,null, true,null, textType);
+			this(null,null,null,null,null,null,null,null,null,null,null,null,null, true,null, textType);
+		}
+
+		//通义万相参数
+		public Parameters(String style,String size,Integer n,Integer seed,Float refStrength,String refMode){
+			this(null,style,size,n,seed,refStrength,refMode,null,null,null,null,null,null,null,null,null);
 		}
 	}
 	

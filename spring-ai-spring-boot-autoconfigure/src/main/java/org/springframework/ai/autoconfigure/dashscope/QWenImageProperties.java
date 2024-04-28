@@ -1,6 +1,6 @@
 package org.springframework.ai.autoconfigure.dashscope;
 
-import org.springframework.ai.dashscope.qwen.QWenImageOption;
+import org.springframework.ai.dashscope.qwen.QWenImageOptions;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -12,14 +12,14 @@ public class QWenImageProperties extends DashscopeParentProperties{
     private boolean enabled = true;
 
     @NestedConfigurationProperty
-    private QWenImageOption option;
+    private QWenImageOptions options;
 
-    public QWenImageOption getOption() {
-        return option;
+    public QWenImageOptions getOptions() {
+        return options;
     }
 
-    public void setOption(QWenImageOption option) {
-        this.option = option;
+    public void setOptions(QWenImageOptions options) {
+        this.options = options;
     }
 
     public boolean isEnabled() {

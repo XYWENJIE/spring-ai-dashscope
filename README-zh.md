@@ -33,7 +33,7 @@ mvn clean install
 这将并以项目并安装本地Maven仓库
 
 引入依赖
-在你的Spring项目中添加依赖，这里以阿里云的模型服务产品“灵积”为例:
+在你的Spring项目中添加依赖，在Maven文件pom.xml添加模型，这里以阿里云的模型服务产品“灵积”为例:
 ~~~xml
 <dependency>
 	<groupId>org.xywenjie.spring-ai-extension</groupId>
