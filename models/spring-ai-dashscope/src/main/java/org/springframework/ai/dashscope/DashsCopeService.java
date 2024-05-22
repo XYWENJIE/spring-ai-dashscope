@@ -108,7 +108,7 @@ public class DashsCopeService {
 		@Override
 		public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
 				throws IOException {
-			logger.info("Body:{}",new String(body));
+			logger.info("Request Body:{}",new String(body));
 			ClientHttpResponse httpResponse = execution.execute(request, body);
 			logger.info("Http Response:");
 			HttpHeaders httpHeaders = httpResponse.getHeaders();
@@ -434,7 +434,7 @@ public class DashsCopeService {
 	
 	public ResponseEntity<ChatCompletion> chatCompletionEntity(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
-        logger.info("开始提交参数{}", chatRequest);
+        logger.info("开始使用同步提交参数{}", chatRequest);
 		String uri = getModelSpecificURI(chatRequest.model);
 		ResponseEntity<String> jsonResponse =  this.restClient.post()
 				.uri(uri)
@@ -450,9 +450,9 @@ public class DashsCopeService {
 	
 	public Flux<ChatCompletion> chatCompletionStream(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
-		logger.info("提交参数{}",chatRequest);
+		logger.info("开始使用Steam提交参数{}",chatRequest);
 		try{
-			logger.info(objectMapper.writeValueAsString(chatRequest));
+			logger.info("Steam提交参数Body:{}",objectMapper.writeValueAsString(chatRequest));
 		}catch (Exception e){
 			logger.error(e.getMessage());
 		}

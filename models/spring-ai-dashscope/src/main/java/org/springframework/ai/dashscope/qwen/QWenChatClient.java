@@ -9,7 +9,6 @@ import org.springframework.ai.chat.ChatClient;
 import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.Generation;
 import org.springframework.ai.chat.StreamingChatClient;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.metadata.RateLimit;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -124,7 +123,9 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 			Flux<DashsCopeService.ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(request);
 			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap();
 			
-			return completionChunks.map(chatCompletion -> {
+			return completionChunks.switchMap(cc-> handleFunctionCallOrReturnStream(request,Flux.just(ResponseEntity.of(Optional.of(cc)))))
+					.map(ResponseEntity::getBody)
+					.map(chatCompletion -> {
 				try{
 					chatCompletion = handleFunctionCallOrReturn(request,ResponseEntity.of(Optional.of(chatCompletion)))
 							.getBody();
@@ -151,6 +152,10 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 			});
 		});
 	}
+
+//	private DashsCopeService.ChatCompletion chunkToChatCompletion(DashsCopeService.ChatCompletion chunk){
+//		List<Choice> choices = chunk.c
+//	}
 	
 	public ChatCompletionRequest createRequest(Prompt prompt,Boolean stream) {
 		Set<String> functionsForThisRequest = new HashSet<>();
@@ -246,13 +251,17 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 	}
 
 	@Override
+	protected Flux<ResponseEntity<ChatCompletion>> doChatCompletionStream(ChatCompletionRequest request) {
+		return this.dashCopeService.chatCompletionStream(request).map(Optional::ofNullable).map(ResponseEntity::of);
+	}
+
+	@Override
 	protected boolean isToolFunctionCall(ResponseEntity<ChatCompletion> chatCompletion) {
-		logger.info("isToolFunctionCall");
 		var body = chatCompletion.getBody();
+		logger.info("判断是否需要使用函数回调，返回参数：{}",body);
 		if(body == null) {
 			return false;
 		}
-		logger.info("查看参数：{}",body);
 		var choices = body.output().choices();
 		if(CollectionUtils.isEmpty(choices)) {
 			return false;
