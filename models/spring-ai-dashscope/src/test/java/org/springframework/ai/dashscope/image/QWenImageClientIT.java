@@ -5,11 +5,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashscope.DashsCopeTestConfiguration;
-import org.springframework.ai.image.ImageClient;
-import org.springframework.ai.image.ImageOptions;
-import org.springframework.ai.image.ImageOptionsBuilder;
-import org.springframework.ai.image.ImagePrompt;
-import org.springframework.ai.image.ImageResponse;
+import org.springframework.ai.image.*;
+import org.springframework.ai.image.ImageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -20,7 +17,7 @@ public class QWenImageClientIT {
 	private final Logger logger = LoggerFactory.getLogger(QWenImageClientIT.class);
 	
 	@Autowired
-	private ImageClient qwenImageClient;
+	private ImageModel qwenImageClient;
 	
 	@Test
 	public void imageAsUrlTest() {

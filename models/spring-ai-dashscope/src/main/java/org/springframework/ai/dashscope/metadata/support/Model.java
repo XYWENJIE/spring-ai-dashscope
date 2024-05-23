@@ -2,7 +2,7 @@ package org.springframework.ai.dashscope.metadata.support;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum ChatModel {
+public enum Model {
 	QWen_1_8B_CHAT("qwen-1.8b-chat"),
 	QWen_1_8B_LONGCONTEXT_CHAT("qwen-1.8b-longcontext-chat"),
 	QWen_7B_CHAT("qwen-7b-chat"),
@@ -18,7 +18,7 @@ public enum ChatModel {
 	
 	private String modelValue;
 
-	ChatModel(String modelValue) {
+	Model(String modelValue) {
 		this.modelValue = modelValue;
 	}
 

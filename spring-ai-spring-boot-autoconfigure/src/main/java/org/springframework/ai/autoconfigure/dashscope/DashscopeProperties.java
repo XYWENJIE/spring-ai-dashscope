@@ -1,6 +1,6 @@
 package org.springframework.ai.autoconfigure.dashscope;
 
-import org.springframework.ai.dashscope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.dashscope.qwen.QWenChatOptions;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -10,7 +10,7 @@ public class DashscopeProperties extends DashscopeParentProperties {
 
     public static final String CONFIG_PREFIX = "spring.ai.dashscope.qwen.chat";
 
-    private static final ChatModel DEFAULT_CHAT_MODEL = ChatModel.QWen_TURBO;
+    private static final Model DEFAULT_CHAT_MODEL = Model.QWen_TURBO;
 
     private static final Double DEFAULT_TEMPERATURE = 0.7;
 

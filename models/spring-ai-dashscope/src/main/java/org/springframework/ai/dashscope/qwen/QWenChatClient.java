@@ -5,10 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.ChatClient;
-import org.springframework.ai.chat.ChatResponse;
-import org.springframework.ai.chat.Generation;
-import org.springframework.ai.chat.StreamingChatClient;
+import org.springframework.ai.chat.*;
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.metadata.RateLimit;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -23,7 +20,7 @@ import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionRequest;
 import org.springframework.ai.dashscope.DashsCopeService.Choices;
 import org.springframework.ai.dashscope.DashsCopeService.FunctionTool;
 import org.springframework.ai.dashscope.DashsCopeService.ToolCall;
-import org.springframework.ai.dashscope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.model.function.AbstractFunctionCallSupport;
 import org.springframework.ai.model.function.FunctionCallbackContext;
@@ -40,7 +37,7 @@ import reactor.core.publisher.Flux;
  * 通义千问（QWen）的客户端实现类
  * @author 黄文杰
  */
-public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatClient,StreamingChatClient {
+public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatModel,StreamingChatModel {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenChatClient.class);
 	
@@ -53,7 +50,7 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 	private final Map<String,String> oldMessageMap = new HashMap<>();
 	
 	public QWenChatClient(DashsCopeService dashCopeService) {
-		this(dashCopeService, QWenChatOptions.builder().withModel(ChatModel.QWen_72B_CHAT).withTemperature(0.7f).build());
+		this(dashCopeService, QWenChatOptions.builder().withModel(Model.QWen_72B_CHAT).withTemperature(0.7f).build());
 	}
 	
 	public QWenChatClient(DashsCopeService dashCopeService, QWenChatOptions options) {
@@ -103,7 +100,12 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 			return new ChatResponse(generations,null);
 		});
 	}
-	
+
+	@Override
+	public ChatOptions getDefaultOptions() {
+		return this.defaultChatOptions;
+	}
+
 	private Map<String,Object> toMap(String id,Choices choice){
 		Map<String,Object> map = new HashMap<>();
 

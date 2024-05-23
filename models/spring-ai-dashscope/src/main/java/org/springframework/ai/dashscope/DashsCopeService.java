@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.dashscope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.http.*;
@@ -154,15 +153,15 @@ public class DashsCopeService {
 	@JsonInclude(Include.NON_NULL)
 	public record ChatCompletionRequest(
 			@JsonProperty("stream") Boolean stream,
-			@JsonProperty("model") ChatModel model,
+			@JsonProperty("model") Model model,
 			@JsonProperty("input") Input input,
 			@JsonProperty("parameters") Parameters parameters) {
 		
-		public ChatCompletionRequest(Boolean stream,List<ChatCompletionMessage> messages,ChatModel model,Float temperature) {
+		public ChatCompletionRequest(Boolean stream, List<ChatCompletionMessage> messages, Model model, Float temperature) {
 			this(stream,model,new Input(null, messages,null),new Parameters("message", null, null,null,null,null,null,null, null, null, null, temperature, null, null,null,null));
 		}
 		
-		public ChatCompletionRequest(Input input,ChatModel model,Parameters parameters) {
+		public ChatCompletionRequest(Input input, Model model, Parameters parameters) {
 			this(false,model, input, parameters);
 		}
 
@@ -478,7 +477,7 @@ public class DashsCopeService {
 				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(String.class);
 	}
 
-	public String getModelSpecificURI(ChatModel model){
+	public String getModelSpecificURI(Model model){
 		switch (model){
 			case QWen_VL_PLUS:
 			case QWen_VL_MAX:

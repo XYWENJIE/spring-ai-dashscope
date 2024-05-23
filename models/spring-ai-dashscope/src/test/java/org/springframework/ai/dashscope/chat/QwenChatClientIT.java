@@ -2,7 +2,6 @@ package org.springframework.ai.dashscope.chat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.ChatClient;
-import org.springframework.ai.chat.ChatResponse;
-import org.springframework.ai.chat.Generation;
-import org.springframework.ai.chat.StreamingChatClient;
+import org.springframework.ai.chat.*;
+import org.springframework.ai.chat.StreamingChatModel;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Media;
 import org.springframework.ai.chat.messages.Message;
@@ -25,7 +22,7 @@ import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.DashsCopeTestConfiguration;
 import org.springframework.ai.dashscope.api.tool.MockWeatherService;
-import org.springframework.ai.dashscope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.dashscope.qwen.QWenChatOptions;
 import org.springframework.ai.model.function.FunctionCallbackWrapper;
 import org.springframework.ai.parser.ListOutputParser;
@@ -36,7 +33,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.MimeTypeUtils;
 import reactor.core.publisher.Flux;
 
@@ -49,10 +45,10 @@ public class QwenChatClientIT {
 	private ObjectMapper objectMapper = new ObjectMapper();
 	
 	@Autowired
-	private ChatClient chatClient;
+	private ChatModel chatClient;
 
 	@Autowired
-	private StreamingChatClient streamingChatClient;
+	private StreamingChatModel streamingChatClient;
 	
 	/**
 	 * 测试用例-将阿里云返回JSON字符串反序列化成ChatCompletion
@@ -102,7 +98,7 @@ public class QwenChatClientIT {
 		UserMessage userMessage = new UserMessage("我想查询这几个城市天气 旧金山,东京,和巴黎?");
 		List<Message> messages = new ArrayList<>(List.of(userMessage));
 		
-		var promptOption = QWenChatOptions.builder().withModel(ChatModel.QWen_TURBO)
+		var promptOption = QWenChatOptions.builder().withModel(Model.QWen_TURBO)
 				.withFunctionCallbacks(List.of(FunctionCallbackWrapper.builder(new MockWeatherService())
 						.withName("getCurrentWeather")
 						.withDescription("Get the weather in location")
@@ -123,7 +119,7 @@ public class QwenChatClientIT {
 		UserMessage userMessage = new UserMessage("我想查询这几个城市天气 旧金山,东京,和巴黎?");
 
 		List<Message> messages = new ArrayList<>(List.of(userMessage));
-		var promptOption = QWenChatOptions.builder().withModel(ChatModel.QWen_TURBO)
+		var promptOption = QWenChatOptions.builder().withModel(Model.QWen_TURBO)
 				.withFunctionCallbacks(List.of(FunctionCallbackWrapper.builder(new MockWeatherService())
 						.withName("getCurrentWeather")
 						.withDescription("Get the weather in location")
@@ -148,7 +144,7 @@ public class QwenChatClientIT {
 				List.of(new Media(MimeTypeUtils.IMAGE_PNG, "https://bkimg.cdn.bcebos.com/pic/a686c9177f3e67096d187aa634c79f3df8dc554a?x-bce-process=image/format,f_auto/watermark,image_d2F0ZXIvYmFpa2UyNzI,g_7,xp_5,yp_5,P_20/resize,m_lfit,limit_1,h_1080")));
 
 		ChatResponse response = chatClient.call(new Prompt(List.of(userMessage),
-				QWenChatOptions.builder().withModel(ChatModel.QWen_VL_PLUS).build()));
+				QWenChatOptions.builder().withModel(Model.QWen_VL_PLUS).build()));
 
 		logger.info(response.getResult().getOutput().getContent());
 		assertThat(response.getResult().getOutput().getContent()).contains("bananas", "apple");

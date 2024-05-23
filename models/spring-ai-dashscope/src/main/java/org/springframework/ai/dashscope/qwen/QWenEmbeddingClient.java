@@ -11,11 +11,7 @@ import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.metadata.support.EmbeddingModel;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.MetadataMode;
-import org.springframework.ai.embedding.AbstractEmbeddingClient;
-import org.springframework.ai.embedding.Embedding;
-import org.springframework.ai.embedding.EmbeddingRequest;
-import org.springframework.ai.embedding.EmbeddingResponse;
-import org.springframework.ai.embedding.EmbeddingResponseMetadata;
+import org.springframework.ai.embedding.*;
 import org.springframework.retry.RetryListener;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
@@ -24,7 +20,7 @@ import org.springframework.util.Assert;
  * 通用文本向量，是通义实验室基于LLM底座的多语言文本统一向量模型，面向全球多个主流语种，提供高水准的向量服务，帮助开发者将文本数据快速转换为高质量的向量数据。
  * @author 黄文杰
  */
-public class QWenEmbeddingClient extends AbstractEmbeddingClient {
+public class QWenEmbeddingClient extends AbstractEmbeddingModel {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QWenEmbeddingClient.class);
 	

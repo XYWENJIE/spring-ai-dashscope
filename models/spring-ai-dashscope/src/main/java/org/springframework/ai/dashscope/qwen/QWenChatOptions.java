@@ -8,7 +8,7 @@ import java.util.Set;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.DashsCopeService.FunctionTool;
-import org.springframework.ai.dashscope.metadata.support.ChatModel;
+import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.model.function.FunctionCallingOptions;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(Include.NON_NULL)
 public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 	
-	private @JsonProperty("model") ChatModel model;
+	private @JsonProperty("model") Model model;
 	
 	private @JsonProperty("temperature") Float temperature = 0.7F;
 	
@@ -52,7 +52,7 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 			this.options = new QWenChatOptions();
 		}
 		
-		public Builder withModel(ChatModel model) {
+		public Builder withModel(Model model) {
 			this.options.model = model;
 			return this;
 		}
@@ -91,14 +91,14 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 		
 	}
 	
-	public ChatModel getModel() {
+	public Model getModel() {
 		if(model != null){
 			return model;
 		}
 		return null;
 	}
 
-	public void setModel(ChatModel model) {
+	public void setModel(Model model) {
 		this.model = model;
 	}
 

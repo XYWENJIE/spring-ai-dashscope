@@ -5,7 +5,7 @@ import org.springframework.ai.dashscope.qwen.QWenEmbeddingClient;
 import org.springframework.ai.dashscope.qwen.QWenImageClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
-import org.springframework.ai.embedding.EmbeddingClient;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.SpringBootConfiguration;
 
 @SpringBootConfiguration
@@ -35,7 +35,7 @@ public class DashsCopeTestConfiguration {
 	}
 	
 	@Bean
-	public EmbeddingClient qwenEmbeddingClient(DashsCopeService dashCopeService) {
+	public EmbeddingModel qwenEmbeddingClient(DashsCopeService dashCopeService) {
 		return new QWenEmbeddingClient(dashCopeService);
 	}
 

@@ -6,11 +6,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashscope.DashsCopeService;
-import org.springframework.ai.image.Image;
-import org.springframework.ai.image.ImageClient;
-import org.springframework.ai.image.ImageGeneration;
-import org.springframework.ai.image.ImagePrompt;
-import org.springframework.ai.image.ImageResponse;
+import org.springframework.ai.image.*;
+import org.springframework.ai.image.ImageModel;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +19,7 @@ import org.springframework.util.Assert;
  * 相关文档地址：https://help.aliyun.com/zh/dashscope/developer-reference/api-details-9?spm=a2c4g.11186623.0.0.2859602dP7PUx7#25745d61fbx49
  * @author 黄文杰
  */
-public class QWenImageClient implements ImageClient {
+public class QWenImageClient implements ImageModel {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenImageClient.class);
 	

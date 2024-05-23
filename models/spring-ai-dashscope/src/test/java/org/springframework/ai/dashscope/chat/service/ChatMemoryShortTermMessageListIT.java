@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.springframework.ai.chat.StreamingChatClient;
 import org.springframework.ai.chat.memory.*;
 import org.springframework.ai.chat.service.ChatService;
 import org.springframework.ai.chat.service.PromptTransformingChatService;
