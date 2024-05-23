@@ -33,6 +33,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 /**
@@ -48,6 +49,8 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 	private QWenChatOptions defaultChatOptions;
 	
 	private final RetryTemplate retryTemplate;
+
+	private final Map<String,String> oldMessageMap = new HashMap<>();
 	
 	public QWenChatClient(DashsCopeService dashCopeService) {
 		this(dashCopeService, QWenChatOptions.builder().withModel(ChatModel.QWen_72B_CHAT).withTemperature(0.7f).build());
@@ -121,9 +124,9 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 		return this.retryTemplate.execute(ctx -> {
 			
 			Flux<DashsCopeService.ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(request);
-			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap();
+			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap<>();
 			
-			return completionChunks.switchMap(cc-> handleFunctionCallOrReturnStream(request,Flux.just(ResponseEntity.of(Optional.of(cc)))))
+			return completionChunks.map(this::chunkToChatCompletion).switchMap(cc-> handleFunctionCallOrReturnStream(request,Flux.just(ResponseEntity.of(Optional.of(cc)))))
 					.map(ResponseEntity::getBody)
 					.map(chatCompletion -> {
 				try{
@@ -153,9 +156,34 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 		});
 	}
 
-//	private DashsCopeService.ChatCompletion chunkToChatCompletion(DashsCopeService.ChatCompletion chunk){
-//		List<Choice> choices = chunk.c
-//	}
+	private DashsCopeService.ChatCompletion chunkToChatCompletion(DashsCopeService.ChatCompletion chunk){
+		String oldMessage = oldMessageMap.get(chunk.request_id());
+		if(!StringUtils.hasLength(oldMessage)){
+			oldMessage = "";
+		}
+		if(StringUtils.hasLength(chunk.output().choices().get(0).message().content())){
+			String word;
+			if(chunk.output().choices().get(0).message().content().charAt(0) == ':'){
+				String sourceContent = chunk.output().choices().get(0).message().content().substring(1);
+				word = sourceContent.replace(oldMessage, "");
+				oldMessage = sourceContent;
+			}else{
+				word = chunk.output().choices().get(0).message().content().replace(oldMessage, "");
+				oldMessage = chunk.output().choices().get(0).message().content();
+			}
+			oldMessageMap.put(chunk.request_id(),oldMessage);
+			List<Choices> choicesList = chunk.output().choices().stream().map(choices -> {
+				ChatCompletionMessage message = new ChatCompletionMessage(word, choices.message().role());
+				return new Choices(choices.finishReason(),message,choices.toolCall());
+			}).toList();
+			DashsCopeService.Output output = new DashsCopeService.Output(chunk.output().finishReason(),chunk.output().text(), choicesList,chunk.output().taskId(),chunk.output().taskStatus(),chunk.output().taskMetrices(),chunk.output().results(),chunk.output().embeddings());
+			return new ChatCompletion(output,chunk.usage(),chunk.request_id());
+		}
+		if(!chunk.output().choices().get(0).finishReason().equals(ChatCompletionFinishReason.NULL)){
+			oldMessageMap.remove(chunk.request_id());
+		}
+		return new ChatCompletion(chunk.output(),chunk.usage(),chunk.request_id());
+	}
 	
 	public ChatCompletionRequest createRequest(Prompt prompt,Boolean stream) {
 		Set<String> functionsForThisRequest = new HashSet<>();
@@ -244,21 +272,18 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 
 	@Override
 	protected ResponseEntity<ChatCompletion> doChatCompletion(ChatCompletionRequest request) {
-		if(request.stream()){
-			//return this.dashCopeService.chatCompletionStream(request);
-		}
 		return this.dashCopeService.chatCompletionEntity(request);
 	}
 
 	@Override
 	protected Flux<ResponseEntity<ChatCompletion>> doChatCompletionStream(ChatCompletionRequest request) {
-		return this.dashCopeService.chatCompletionStream(request).map(Optional::ofNullable).map(ResponseEntity::of);
+		return this.dashCopeService.chatCompletionStream(request).map(this::chunkToChatCompletion).map(Optional::ofNullable).map(ResponseEntity::of);
 	}
 
 	@Override
 	protected boolean isToolFunctionCall(ResponseEntity<ChatCompletion> chatCompletion) {
 		var body = chatCompletion.getBody();
-		logger.info("判断是否需要使用函数回调，返回参数：{}",body);
+		//logger.info("判断是否需要使用函数回调，返回参数：{}",body);
 		if(body == null) {
 			return false;
 		}

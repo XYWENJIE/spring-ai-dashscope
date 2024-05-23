@@ -463,6 +463,21 @@ public class DashsCopeService {
 				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(ChatCompletion.class);
 	}
 
+	public Flux<String> chatCompletionStreamString(ChatCompletionRequest chatRequest){
+		Assert.notNull(chatRequest, "请求体不能为空。");
+		logger.info("开始使用Steam提交参数{}",chatRequest);
+		try{
+			logger.info("Steam提交参数Body:{}",objectMapper.writeValueAsString(chatRequest));
+		}catch (Exception e){
+			logger.error(e.getMessage());
+		}
+		// 添加图文识别 测试，Qwen对这方面调用比OpenAI负责
+		String uri = getModelSpecificURI(chatRequest.model);
+		return this.webClient.post()
+				.uri(uri)
+				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(String.class);
+	}
+
 	public String getModelSpecificURI(ChatModel model){
 		switch (model){
 			case QWen_VL_PLUS:
