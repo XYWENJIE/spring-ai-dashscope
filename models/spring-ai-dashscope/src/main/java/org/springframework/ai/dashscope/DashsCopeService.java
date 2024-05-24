@@ -460,7 +460,7 @@ public class DashsCopeService {
 				.uri(uri)
 				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(String.class).mapNotNull(body->{
 					try{
-						logger.info("请求返回JSON数据：{}",body);
+						logger.debug("请求返回JSON数据：{}",body);
 						return this.objectMapper.readValue(body,ChatCompletion.class);
 					}catch (Exception e){
 						logger.error(e.getMessage());
