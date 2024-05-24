@@ -1,7 +1,7 @@
 package org.springframework.ai.dashscope.chatglm;
 
-import org.springframework.ai.chat.ChatModel;
-import org.springframework.ai.chat.ChatResponse;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashscope.DashsCopeService;

@@ -1,8 +1,7 @@
 package org.springframework.ai.dashscope.llama2;
 
-import org.springframework.ai.chat.ChatClient;
-import org.springframework.ai.chat.ChatModel;
-import org.springframework.ai.chat.ChatResponse;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatRequest;

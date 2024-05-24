@@ -5,9 +5,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.*;
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.metadata.RateLimit;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
+import org.springframework.ai.chat.model.StreamingChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashscope.DashsCopeService;
@@ -37,7 +40,7 @@ import reactor.core.publisher.Flux;
  * 通义千问（QWen）的客户端实现类
  * @author 黄文杰
  */
-public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatModel,StreamingChatModel {
+public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatModel, StreamingChatModel {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenChatClient.class);
 	

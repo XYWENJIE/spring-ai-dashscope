@@ -449,7 +449,6 @@ public class DashsCopeService {
 	
 	public Flux<ChatCompletion> chatCompletionStream(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
-		logger.info("开始使用Steam提交参数{}",chatRequest);
 		try{
 			logger.info("Steam提交参数Body:{}",objectMapper.writeValueAsString(chatRequest));
 		}catch (Exception e){
@@ -459,7 +458,15 @@ public class DashsCopeService {
 		String uri = getModelSpecificURI(chatRequest.model);
 		return this.webClient.post()
 				.uri(uri)
-				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(ChatCompletion.class);
+				.body(Mono.just(chatRequest),ChatCompletionRequest.class).retrieve().bodyToFlux(String.class).mapNotNull(body->{
+					try{
+						logger.info("请求返回JSON数据：{}",body);
+						return this.objectMapper.readValue(body,ChatCompletion.class);
+					}catch (Exception e){
+						logger.error(e.getMessage());
+					}
+					return null;
+				});
 	}
 
 	public Flux<String> chatCompletionStreamString(ChatCompletionRequest chatRequest){
