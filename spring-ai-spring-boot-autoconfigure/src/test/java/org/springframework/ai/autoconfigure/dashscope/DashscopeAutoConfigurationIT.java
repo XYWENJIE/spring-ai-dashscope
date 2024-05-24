@@ -8,9 +8,9 @@ import org.springframework.ai.autoconfigure.retry.SpringAiRetryAutoConfiguration
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.dashscope.qwen.QWenChatClient;
-import org.springframework.ai.dashscope.qwen.QWenEmbeddingClient;
-import org.springframework.ai.dashscope.qwen.QWenImageClient;
+import org.springframework.ai.dashscope.qwen.QWenChatModel;
+import org.springframework.ai.dashscope.qwen.QWenEmbeddingModel;
+import org.springframework.ai.dashscope.qwen.QWenImageModel;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.image.ImagePrompt;
 import org.springframework.ai.image.ImageResponse;
@@ -36,7 +36,7 @@ public class DashscopeAutoConfigurationIT {
     @Test
     void generate(){
         contextRunner.run(context -> {
-            QWenChatClient chatClient = context.getBean(QWenChatClient.class);
+            QWenChatModel chatClient = context.getBean(QWenChatModel.class);
             String response = chatClient.call("Hello");
             assertThat(response).isNotEmpty();
             logger.info("Response:"+response);
@@ -56,7 +56,7 @@ public class DashscopeAutoConfigurationIT {
     @Test
     void generateStreaming(){
         contextRunner.run(context -> {
-           QWenChatClient chatClient = context.getBean(QWenChatClient.class);
+           QWenChatModel chatClient = context.getBean(QWenChatModel.class);
             Flux<ChatResponse> responseFlux = chatClient.stream(new Prompt(new UserMessage("Hello")));
             String response = responseFlux.collectList().block().stream().map(chatResponse -> chatResponse.getResults().get(0).getOutput().getContent()).collect(Collectors.joining());
 
@@ -68,7 +68,7 @@ public class DashscopeAutoConfigurationIT {
     @Test
     void embedding(){
         contextRunner.run(context -> {
-            QWenEmbeddingClient embeddingClient = context.getBean(QWenEmbeddingClient.class);
+            QWenEmbeddingModel embeddingClient = context.getBean(QWenEmbeddingModel.class);
             EmbeddingResponse embeddingResponse = embeddingClient.embedForResponse(List.of("Hello Word","World is big and salvation is near"));
             assertThat(embeddingResponse.getResults()).hasSize(2);
             assertThat(embeddingResponse.getResults().get(0).getOutput()).isNotEmpty();
@@ -83,7 +83,7 @@ public class DashscopeAutoConfigurationIT {
     @Test
     void generateImage(){
         contextRunner.withPropertyValues("spring.ai.dashscope.qwen.image.options.size=1024*1024").run(context -> {
-            QWenImageClient imageClient = context.getBean(QWenImageClient.class);
+            QWenImageModel imageClient = context.getBean(QWenImageModel.class);
             ImageResponse imageResponse = imageClient.call(new ImagePrompt("forest"));
             assertThat(imageResponse.getResults()).hasSize(1);
             assertThat(imageResponse.getResult().getOutput().getUrl()).isNotEmpty();

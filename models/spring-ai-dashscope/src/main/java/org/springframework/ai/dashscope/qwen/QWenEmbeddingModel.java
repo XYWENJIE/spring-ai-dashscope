@@ -20,9 +20,9 @@ import org.springframework.util.Assert;
  * 通用文本向量，是通义实验室基于LLM底座的多语言文本统一向量模型，面向全球多个主流语种，提供高水准的向量服务，帮助开发者将文本数据快速转换为高质量的向量数据。
  * @author 黄文杰
  */
-public class QWenEmbeddingClient extends AbstractEmbeddingModel {
+public class QWenEmbeddingModel extends AbstractEmbeddingModel {
 	
-	private static final Logger logger = LoggerFactory.getLogger(QWenEmbeddingClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(QWenEmbeddingModel.class);
 	
 	public static final EmbeddingModel DEFAULT_OPENAI_EMBEDDING_MODEL = EmbeddingModel.TEXT_EMBEDDING_V1;
 	
@@ -41,16 +41,16 @@ public class QWenEmbeddingClient extends AbstractEmbeddingModel {
 	
 	private final MetadataMode metadataMode;
 	
-	public QWenEmbeddingClient(DashsCopeService dashCopeService) {
+	public QWenEmbeddingModel(DashsCopeService dashCopeService) {
 		this(dashCopeService,MetadataMode.EMBED);
 	}
 	
-	public QWenEmbeddingClient(DashsCopeService dashCopeService, MetadataMode metadataMode) {
+	public QWenEmbeddingModel(DashsCopeService dashCopeService, MetadataMode metadataMode) {
 		this(dashCopeService,metadataMode,QWenEmbeddingOptions.builder().withModel(DEFAULT_OPENAI_EMBEDDING_MODEL).build());
 		//this(null,null,null);
 	}
 	
-	public QWenEmbeddingClient(DashsCopeService dashCopeService, MetadataMode metadataMode, QWenEmbeddingOptions embeddingOptions) {
+	public QWenEmbeddingModel(DashsCopeService dashCopeService, MetadataMode metadataMode, QWenEmbeddingOptions embeddingOptions) {
 		Assert.notNull(dashCopeService, "dashCopeService不能为空");
 		Assert.notNull(metadataMode, "metadataMode不能为空");
 		Assert.notNull(embeddingOptions, "embeddingOptions不能为空");

@@ -7,11 +7,11 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.metadata.support.Model;
 
-public class DashsCopeChatGLMClient implements ChatModel {
+public class DashsCopeChatGLMModel implements ChatModel {
 
     private final DashsCopeService dashsCopeService;
 
-    public DashsCopeChatGLMClient(DashsCopeService dashsCopeService) {
+    public DashsCopeChatGLMModel(DashsCopeService dashsCopeService) {
         this.dashsCopeService = dashsCopeService;
     }
 

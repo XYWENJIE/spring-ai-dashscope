@@ -10,7 +10,7 @@ import org.springframework.ai.chat.service.PromptTransformingChatService;
 import org.springframework.ai.chat.service.StreamingChatService;
 import org.springframework.ai.chat.service.StreamingPromptTransformingChatService;
 import org.springframework.ai.dashscope.DashsCopeService;
-import org.springframework.ai.dashscope.qwen.QWenChatClient;
+import org.springframework.ai.dashscope.qwen.QWenChatModel;
 import org.springframework.ai.evaluation.BaseMemoryTest;
 import org.springframework.ai.evaluation.RelevancyEvaluator;
 import org.springframework.ai.tokenizer.JTokkitTokenCountEstimator;
@@ -46,8 +46,8 @@ public class ChatMemoryShortTermMessageListIT extends BaseMemoryTest{
         }
 
         @Bean
-        public QWenChatClient qWenChatClient(DashsCopeService dashsCopeService){
-            return new QWenChatClient(dashsCopeService);
+        public QWenChatModel qWenChatClient(DashsCopeService dashsCopeService){
+            return new QWenChatModel(dashsCopeService);
         }
 
         @Bean
@@ -61,7 +61,7 @@ public class ChatMemoryShortTermMessageListIT extends BaseMemoryTest{
         }
 
         @Bean
-        public ChatService memoryChatService(QWenChatClient qWenChatClient,ChatMemory chatHistory,
+        public ChatService memoryChatService(QWenChatModel qWenChatClient, ChatMemory chatHistory,
                                              TokenCountEstimator tokenCountEstimator){
             return PromptTransformingChatService.builder(qWenChatClient)
                     .withRetrievers(List.of(new ChatMemoryRetriever(chatHistory)))
@@ -72,7 +72,7 @@ public class ChatMemoryShortTermMessageListIT extends BaseMemoryTest{
         }
 
         @Bean
-        public StreamingChatService memoryStreamingChatService(QWenChatClient streamingChatClient,
+        public StreamingChatService memoryStreamingChatService(QWenChatModel streamingChatClient,
                                                                ChatMemory chatHistory, TokenCountEstimator tokenCountEstimator) {
 
             return StreamingPromptTransformingChatService.builder(streamingChatClient)
@@ -84,7 +84,7 @@ public class ChatMemoryShortTermMessageListIT extends BaseMemoryTest{
         }
 
         @Bean
-        public RelevancyEvaluator relevancyEvaluator(QWenChatClient chatClient) {
+        public RelevancyEvaluator relevancyEvaluator(QWenChatModel chatClient) {
             return new RelevancyEvaluator(chatClient);
         }
 

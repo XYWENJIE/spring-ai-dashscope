@@ -1,4 +1,4 @@
 package org.springframework.ai.dashscope.qwen;
 
-public class QWenAudioClient {
+public class QWenAudioModel {
 }

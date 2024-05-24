@@ -13,7 +13,7 @@ import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2C
  * 可以理解更长的文本， 在多个公开基准测试上超过了已有的开源模型。 采用了高质量的数据进行微调和基于人工反馈的强化学习训练，具有较高的可靠性和安全性。
  * @author 黄文杰
  */
-public class DashsCopeLlama2ChatClient implements ChatModel {
+public class DashsCopeLlama2ChatModel implements ChatModel {
 
 	@Override
 	public ChatResponse call(Prompt prompt) {

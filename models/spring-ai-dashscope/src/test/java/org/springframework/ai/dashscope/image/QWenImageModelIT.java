@@ -12,9 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = {DashsCopeTestConfiguration.class})
 @EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY", matches = ".+")
-public class QWenImageClientIT {
+public class QWenImageModelIT {
 	
-	private final Logger logger = LoggerFactory.getLogger(QWenImageClientIT.class);
+	private final Logger logger = LoggerFactory.getLogger(QWenImageModelIT.class);
 	
 	@Autowired
 	private ImageModel qwenImageClient;

@@ -40,9 +40,9 @@ import reactor.core.publisher.Flux;
  * 通义千问（QWen）的客户端实现类
  * @author 黄文杰
  */
-public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatModel, StreamingChatModel {
+public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatModel, StreamingChatModel {
 	
-	private final Logger logger = LoggerFactory.getLogger(QWenChatClient.class);
+	private final Logger logger = LoggerFactory.getLogger(QWenChatModel.class);
 	
 	private final DashsCopeService dashCopeService;
 	
@@ -52,15 +52,15 @@ public class QWenChatClient extends AbstractFunctionCallSupport<ChatCompletionMe
 
 	private final Map<String,String> oldMessageMap = new HashMap<>();
 	
-	public QWenChatClient(DashsCopeService dashCopeService) {
+	public QWenChatModel(DashsCopeService dashCopeService) {
 		this(dashCopeService, QWenChatOptions.builder().withModel(Model.QWen_72B_CHAT).withTemperature(0.7f).build());
 	}
 	
-	public QWenChatClient(DashsCopeService dashCopeService, QWenChatOptions options) {
+	public QWenChatModel(DashsCopeService dashCopeService, QWenChatOptions options) {
 		this(dashCopeService,options,null,RetryUtils.DEFAULT_RETRY_TEMPLATE);
 	}
 	
-	public QWenChatClient(DashsCopeService dashsCopeService,QWenChatOptions options,FunctionCallbackContext functionCallbackContext,RetryTemplate retryTemplate) {
+	public QWenChatModel(DashsCopeService dashsCopeService, QWenChatOptions options, FunctionCallbackContext functionCallbackContext, RetryTemplate retryTemplate) {
 		super(functionCallbackContext);
 		Assert.notNull(dashsCopeService, "DashsCopeService must not be null");
 		Assert.notNull(options, "Options must not be null");

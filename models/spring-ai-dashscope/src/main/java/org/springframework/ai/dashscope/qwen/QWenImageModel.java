@@ -19,9 +19,9 @@ import org.springframework.util.Assert;
  * 相关文档地址：https://help.aliyun.com/zh/dashscope/developer-reference/api-details-9?spm=a2c4g.11186623.0.0.2859602dP7PUx7#25745d61fbx49
  * @author 黄文杰
  */
-public class QWenImageClient implements ImageModel {
+public class QWenImageModel implements ImageModel {
 	
-	private final Logger logger = LoggerFactory.getLogger(QWenImageClient.class);
+	private final Logger logger = LoggerFactory.getLogger(QWenImageModel.class);
 	
 	private final DashsCopeService dashsCopeService;
 	private final QWenImageOptions defaultOptions;
@@ -34,11 +34,11 @@ public class QWenImageClient implements ImageModel {
 
 	private final RetryTemplate retryTemplate;
 	
-	public QWenImageClient(DashsCopeService dashCopeService) {
+	public QWenImageModel(DashsCopeService dashCopeService) {
 		this(dashCopeService, QWenImageOptions.builder().build(), RetryUtils.DEFAULT_RETRY_TEMPLATE);
 	}
 
-	public QWenImageClient(DashsCopeService dashsCopeService, QWenImageOptions defaultOptions, RetryTemplate retryTemplate){
+	public QWenImageModel(DashsCopeService dashsCopeService, QWenImageOptions defaultOptions, RetryTemplate retryTemplate){
 		Assert.notNull(dashsCopeService, "dashCopeService 不能为空");
 		this.dashsCopeService = dashsCopeService;
 		this.defaultOptions =defaultOptions;

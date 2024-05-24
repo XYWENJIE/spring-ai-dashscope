@@ -2,9 +2,9 @@ package org.springframework.ai.autoconfigure.dashscope;
 
 import org.springframework.ai.autoconfigure.retry.SpringAiRetryAutoConfiguration;
 import org.springframework.ai.dashscope.DashsCopeService;
-import org.springframework.ai.dashscope.qwen.QWenChatClient;
-import org.springframework.ai.dashscope.qwen.QWenEmbeddingClient;
-import org.springframework.ai.dashscope.qwen.QWenImageClient;
+import org.springframework.ai.dashscope.qwen.QWenChatModel;
+import org.springframework.ai.dashscope.qwen.QWenEmbeddingModel;
+import org.springframework.ai.dashscope.qwen.QWenImageModel;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.model.function.FunctionCallbackContext;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -30,22 +30,22 @@ public class DashscopeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DashscopeProperties.CONFIG_PREFIX,name="enabled",havingValue = "true",matchIfMissing = true)
-    public QWenChatClient qWenChatClient(DashscopeConnectionProperties commonProperties, DashscopeProperties dashscopeProperties, List<FunctionCallback> toolFunctionCallback,
-                                         FunctionCallbackContext functionCallbackContext, RetryTemplate retryTemplate){
+    public QWenChatModel qWenChatClient(DashscopeConnectionProperties commonProperties, DashscopeProperties dashscopeProperties, List<FunctionCallback> toolFunctionCallback,
+                                        FunctionCallbackContext functionCallbackContext, RetryTemplate retryTemplate){
         var dashsCopeService = dashsCopeService(dashscopeProperties.getApikey(),commonProperties.getApikey());
         if(!CollectionUtils.isEmpty(toolFunctionCallback)){
             dashscopeProperties.getOptions().getFunctionCallbacks().addAll(toolFunctionCallback);
         }
-        return new QWenChatClient(dashsCopeService,dashscopeProperties.getOptions(),functionCallbackContext,retryTemplate);
+        return new QWenChatModel(dashsCopeService,dashscopeProperties.getOptions(),functionCallbackContext,retryTemplate);
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DashscopeEmbeddingProperties.CONFIG_PREFIX,name = "enabled",havingValue = "true",
             matchIfMissing = true)
-    public QWenEmbeddingClient qWenEmbeddingClient(DashscopeConnectionProperties commonProperties,DashscopeProperties dashscopeProperties){
+    public QWenEmbeddingModel qWenEmbeddingClient(DashscopeConnectionProperties commonProperties, DashscopeProperties dashscopeProperties){
         var dashsCopeService = dashsCopeService(dashscopeProperties.getApikey(),commonProperties.getApikey());
-        return new QWenEmbeddingClient(dashsCopeService);
+        return new QWenEmbeddingModel(dashsCopeService);
     }
 
 
@@ -59,9 +59,9 @@ public class DashscopeAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = QWenImageProperties.CONFIG_PREFIX,name = "enabled",havingValue = "true",
                         matchIfMissing = true)
-    public QWenImageClient qWenImageClient(DashscopeConnectionProperties commonProperties,QWenImageProperties qWenImageProperties){
+    public QWenImageModel qWenImageClient(DashscopeConnectionProperties commonProperties, QWenImageProperties qWenImageProperties){
         var dashsCopeService = dashsCopeService(qWenImageProperties.getApikey(),commonProperties.getApikey());
-        return new QWenImageClient(dashsCopeService);
+        return new QWenImageModel(dashsCopeService);
     }
 
     //TODO 未来1.0添加声音模型

@@ -1,8 +1,8 @@
 package org.springframework.ai.dashscope;
 
-import org.springframework.ai.dashscope.qwen.QWenChatClient;
-import org.springframework.ai.dashscope.qwen.QWenEmbeddingClient;
-import org.springframework.ai.dashscope.qwen.QWenImageClient;
+import org.springframework.ai.dashscope.qwen.QWenChatModel;
+import org.springframework.ai.dashscope.qwen.QWenEmbeddingModel;
+import org.springframework.ai.dashscope.qwen.QWenImageModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -25,18 +25,18 @@ public class DashsCopeTestConfiguration {
 	}
 	
 	@Bean
-	public QWenChatClient qWenChatClient(DashsCopeService dashCopeService) {
-		return new QWenChatClient(dashCopeService);
+	public QWenChatModel qWenChatClient(DashsCopeService dashCopeService) {
+		return new QWenChatModel(dashCopeService);
 	}
 	
 	@Bean
-	public QWenImageClient qWenImageClient(DashsCopeService dashCopeService) {
-		return new QWenImageClient(dashCopeService);
+	public QWenImageModel qWenImageClient(DashsCopeService dashCopeService) {
+		return new QWenImageModel(dashCopeService);
 	}
 	
 	@Bean
 	public EmbeddingModel qwenEmbeddingClient(DashsCopeService dashCopeService) {
-		return new QWenEmbeddingClient(dashCopeService);
+		return new QWenEmbeddingModel(dashCopeService);
 	}
 
 }

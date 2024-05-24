@@ -37,9 +37,9 @@ import reactor.core.publisher.Flux;
 
 @SpringBootTest(classes = {DashsCopeTestConfiguration.class})
 @EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY",matches = ".+")
-public class QwenChatClientIT {
+public class QwenChatModelIT {
 	
-	private final Logger logger = LoggerFactory.getLogger(QwenChatClientIT.class);
+	private final Logger logger = LoggerFactory.getLogger(QwenChatModelIT.class);
 	
 	private ObjectMapper objectMapper = new ObjectMapper();
 	
