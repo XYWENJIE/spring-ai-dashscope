@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.qwen.QWenChatModel;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -25,13 +26,13 @@ public class QwenChatModel2IT {
 	static class Config {
 		
 		@Bean
-		public DashsCopeService dashsCopeService() {
-			return new DashsCopeService(System.getenv("DASHSCOPE_API_KEY"));
+		public QWenDashScopeService dashScopeService() {
+			return new QWenDashScopeService(System.getenv("DASHSCOPE_API_KEY"));
 		} 
 		
 		@Bean
-		public QWenChatModel qWenChatClient(DashsCopeService dashsCopeService) {
-			return new QWenChatModel(dashsCopeService);
+		public QWenChatModel qWenChatClient(QWenDashScopeService dashScopeService) {
+			return new QWenChatModel(dashScopeService);
 		}
 	}
 	

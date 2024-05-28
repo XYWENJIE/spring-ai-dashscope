@@ -13,22 +13,22 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.model.StreamingChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.dashscope.DashsCopeService;
-import org.springframework.ai.dashscope.DashsCopeService.ChatCompletion;
-import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionFinishReason;
-import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionMessage;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.QWenChatRequest;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.QWenChatResponse;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Output;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Choices;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Message;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Role;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.FunctionTool;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.ChatCompletionFinishReason;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.ToolCall;
 import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionMessage.MediaContent;
-import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionMessage.Role;
-import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionRequest;
-import org.springframework.ai.dashscope.DashsCopeService.Choices;
-import org.springframework.ai.dashscope.DashsCopeService.FunctionTool;
-import org.springframework.ai.dashscope.DashsCopeService.ToolCall;
 import org.springframework.ai.dashscope.metadata.support.Model;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.model.function.AbstractFunctionCallSupport;
 import org.springframework.ai.model.function.FunctionCallbackContext;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -40,11 +40,11 @@ import reactor.core.publisher.Flux;
  * 通义千问（QWen）的客户端实现类
  * @author 黄文杰
  */
-public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMessage, ChatCompletionRequest, ResponseEntity<ChatCompletion>> implements ChatModel, StreamingChatModel {
+public class QWenChatModel extends AbstractFunctionCallSupport<Message, QWenChatRequest, QWenChatResponse> implements ChatModel, StreamingChatModel {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenChatModel.class);
 	
-	private final DashsCopeService dashCopeService;
+	private final QWenDashScopeService dashScopeService;
 	
 	private QWenChatOptions defaultChatOptions;
 	
@@ -52,20 +52,20 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 
 	private final Map<String,String> oldMessageMap = new HashMap<>();
 	
-	public QWenChatModel(DashsCopeService dashCopeService) {
-		this(dashCopeService, QWenChatOptions.builder().withModel(Model.QWen_72B_CHAT).withTemperature(0.7f).build());
+	public QWenChatModel(QWenDashScopeService dashScopeService) {
+		this(dashScopeService, QWenChatOptions.builder().withModel(Model.QWen_72B_CHAT).withTemperature(0.7f).build());
 	}
 	
-	public QWenChatModel(DashsCopeService dashCopeService, QWenChatOptions options) {
-		this(dashCopeService,options,null,RetryUtils.DEFAULT_RETRY_TEMPLATE);
+	public QWenChatModel(QWenDashScopeService dashScopeService, QWenChatOptions options) {
+		this(dashScopeService,options,null,RetryUtils.DEFAULT_RETRY_TEMPLATE);
 	}
 	
-	public QWenChatModel(DashsCopeService dashsCopeService, QWenChatOptions options, FunctionCallbackContext functionCallbackContext, RetryTemplate retryTemplate) {
+	public QWenChatModel(QWenDashScopeService dashScopeService, QWenChatOptions options, FunctionCallbackContext functionCallbackContext, RetryTemplate retryTemplate) {
 		super(functionCallbackContext);
-		Assert.notNull(dashsCopeService, "DashsCopeService must not be null");
+		Assert.notNull(dashScopeService, "DashsCopeService must not be null");
 		Assert.notNull(options, "Options must not be null");
 		Assert.notNull(retryTemplate, "RetryTemplate must not be null");
-		this.dashCopeService = dashsCopeService;
+		this.dashScopeService = dashScopeService;
 		this.defaultChatOptions = options;
 		this.retryTemplate = retryTemplate;
 	}
@@ -81,23 +81,20 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 
 	@Override
 	public ChatResponse call(Prompt prompt) {
-		ChatCompletionRequest request = createRequest(prompt,false);
+		QWenChatRequest request = createRequest(prompt);
 		return this.retryTemplate.execute(ctx -> {
 			
-			ResponseEntity<DashsCopeService.ChatCompletion> completionEntity = this.callWithFunctionSupport(request);
-			
-			var chatCompletion = completionEntity.getBody();
+			QWenChatResponse chatResponse = this.callWithFunctionSupport(request);
 
-			if(chatCompletion == null) {
-				logger.warn("No chat completion returned for request:{}",chatCompletion);
+			if(chatResponse == null) {
+				logger.warn("No chat completion returned for request:{}",chatResponse);
 				return new ChatResponse(List.of());
 			}
-			logger.info(chatCompletion.toString());
-			//TODO
+			//logger.info(chatResponse.toString());
 			RateLimit rateLimit = null;
-			List<Generation> generations = chatCompletion.output().choices().stream().map(choices -> {
-				return new Generation(choices.message().content(),toMap(chatCompletion.request_id(),choices))
-						.withGenerationMetadata(ChatGenerationMetadata.from(chatCompletion.output().choices().get(0).finishReason().name(),null));
+			List<Generation> generations = chatResponse.output().choices().stream().map(choices -> {
+				return new Generation(choices.message().content(),toMap(chatResponse.requestId(),choices))
+						.withGenerationMetadata(ChatGenerationMetadata.from(chatResponse.output().choices().get(0).finishReason().name(),null));
 			}).toList();
 			
 			return new ChatResponse(generations,null);
@@ -125,20 +122,18 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 
 	@Override
 	public Flux<ChatResponse> stream(Prompt prompt) {
-		ChatCompletionRequest request = createRequest(prompt,true);
+		QWenChatRequest request = createRequest(prompt);
 		return this.retryTemplate.execute(ctx -> {
 			
-			Flux<DashsCopeService.ChatCompletion> completionChunks = this.dashCopeService.chatCompletionStream(request);
+			Flux<QWenChatResponse> completionChunks = this.dashScopeService.chatCompletionStream(request);
 			ConcurrentHashMap<String, String> roleMap = new ConcurrentHashMap<>();
 			
-			return completionChunks.map(this::chunkToChatCompletion).switchMap(cc-> handleFunctionCallOrReturnStream(request,Flux.just(ResponseEntity.of(Optional.of(cc)))))
-					.map(ResponseEntity::getBody)
+			return completionChunks.map(this::chunkToChatCompletion).switchMap(cc-> handleFunctionCallOrReturnStream(request,Flux.just(cc)))
 					.map(chatCompletion -> {
 				try{
-					chatCompletion = handleFunctionCallOrReturn(request,ResponseEntity.of(Optional.of(chatCompletion)))
-							.getBody();
+					chatCompletion = handleFunctionCallOrReturn(request,chatCompletion);
 
-					String id = chatCompletion.request_id();
+					String id = chatCompletion.requestId();
 					List<Generation> generations = chatCompletion.output().choices().stream().map(choices -> {
 						if(choices.message().role() != null){
 							roleMap.putIfAbsent(id,choices.message().role().name());
@@ -161,8 +156,8 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 		});
 	}
 
-	private DashsCopeService.ChatCompletion chunkToChatCompletion(DashsCopeService.ChatCompletion chunk){
-		String oldMessage = oldMessageMap.get(chunk.request_id());
+	private QWenChatResponse chunkToChatCompletion(QWenChatResponse chunk){
+		String oldMessage = oldMessageMap.get(chunk.requestId());
 		if(!StringUtils.hasLength(oldMessage)){
 			oldMessage = "";
 		}
@@ -176,32 +171,33 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 				word = chunk.output().choices().get(0).message().content().replace(oldMessage, "");
 				oldMessage = chunk.output().choices().get(0).message().content();
 			}
-			oldMessageMap.put(chunk.request_id(),oldMessage);
+			oldMessageMap.put(chunk.requestId(),oldMessage);
 			List<Choices> choicesList = chunk.output().choices().stream().map(choices -> {
-				ChatCompletionMessage message = new ChatCompletionMessage(word, choices.message().role());
+				Message message = new Message(choices.message().role(),word);
 				return new Choices(choices.finishReason(),message,choices.toolCall());
 			}).toList();
-			DashsCopeService.Output output = new DashsCopeService.Output(chunk.output().finishReason(),chunk.output().text(), choicesList,chunk.output().taskId(),chunk.output().taskStatus(),chunk.output().taskMetrices(),chunk.output().results(),chunk.output().embeddings());
-			return new ChatCompletion(output,chunk.usage(),chunk.request_id());
+			Output output = new Output(chunk.output().text(),chunk.output().finishReason(),choicesList);
+			return new QWenChatResponse(output,chunk.usage(),chunk.requestId());
 		}
 		if(!chunk.output().choices().get(0).finishReason().equals(ChatCompletionFinishReason.NULL)){
-			oldMessageMap.remove(chunk.request_id());
+			oldMessageMap.remove(chunk.requestId());
 		}
-		return new ChatCompletion(chunk.output(),chunk.usage(),chunk.request_id());
+		return new QWenChatResponse(chunk.output(),chunk.usage(),chunk.requestId());
 	}
 	
-	public ChatCompletionRequest createRequest(Prompt prompt,Boolean stream) {
+	public QWenChatRequest createRequest(Prompt prompt) {
 		Set<String> functionsForThisRequest = new HashSet<>();
-		List<ChatCompletionMessage> chatCompletionMessages = prompt.getInstructions().stream().map(m -> {
+		List<Message> chatCompletionMessages = prompt.getInstructions().stream().map(m -> {
 			if(!CollectionUtils.isEmpty(m.getMedia())){
 				List<MediaContent> contents = new ArrayList<>(List.of(new MediaContent(m.getContent(),null)));
 				contents.addAll(m.getMedia().stream().map(media -> new MediaContent(null,media.getData().toString())).toList());
-				return new ChatCompletionMessage(contents,ChatCompletionMessage.Role.valueOf(m.getMessageType().name()));
+				//TODO
+				return new Message(Role.valueOf(m.getMessageType().name()),null);
 			}
-			return new ChatCompletionMessage(m.getContent(),ChatCompletionMessage.Role.valueOf(m.getMessageType().name()));
+			return new Message(Role.valueOf(m.getMessageType().name()),m.getContent());
 		}).toList();
 
-		ChatCompletionRequest request = new ChatCompletionRequest(stream,chatCompletionMessages, this.defaultChatOptions.getModel(), this.defaultChatOptions.getTemperature());
+		QWenChatRequest request = new QWenChatRequest(this.defaultChatOptions.getModel().getModelValue(), new QWenDashScopeService.Input(chatCompletionMessages),new QWenDashScopeService.Parameters(this.defaultChatOptions.getTemperature()));
 		
 		if(prompt.getOptions() != null) {
 			if(prompt.getOptions() instanceof ChatOptions runtimeOptions) {
@@ -212,7 +208,7 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 				
 				functionsForThisRequest.addAll(promptEnabledFunctions);
 				
-				request = ModelOptionsUtils.merge(updatedRuntimeOptions, request, ChatCompletionRequest.class);
+				request = ModelOptionsUtils.merge(updatedRuntimeOptions, request, QWenChatRequest.class);
 				
 			}else {
 				throw new IllegalArgumentException("Prompt options are not of type ChatOptions: "
@@ -224,11 +220,11 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 			
 			functionsForThisRequest.addAll(defaultEnabledFunctions);
 			
-			request = ModelOptionsUtils.merge(request, this.defaultChatOptions, ChatCompletionRequest.class);
+			request = ModelOptionsUtils.merge(request, this.defaultChatOptions, QWenChatRequest.class);
 		}
 		
 		if(!CollectionUtils.isEmpty(functionsForThisRequest)) {
-			request = ModelOptionsUtils.merge(QWenChatOptions.builder().withTools(this.getFunctionTools(functionsForThisRequest)).build(), request, ChatCompletionRequest.class);
+			request = ModelOptionsUtils.merge(QWenChatOptions.builder().withTools(this.getFunctionTools(functionsForThisRequest)).build(), request, QWenChatRequest.class);
 		}
 		return request;
 	}
@@ -239,13 +235,9 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 			return new FunctionTool(function);
 		}).toList();
 	}
-	
-	
-	//TODO 函数回调
+
 	@Override
-	protected ChatCompletionRequest doCreateToolResponseRequest(ChatCompletionRequest previousRequest,
-			ChatCompletionMessage responseMessage, List<ChatCompletionMessage> conversationHistory) {
-		logger.info("doCreateToolResponseRequest");
+	protected QWenChatRequest doCreateToolResponseRequest(QWenChatRequest previousRequest, Message responseMessage, List<Message> conversationHistory) {
 		for(ToolCall toolCall : responseMessage.toolCalls()) {
 			var functionName = toolCall.function().name();
 			String functionArguments = toolCall.function().arguments();
@@ -253,46 +245,43 @@ public class QWenChatModel extends AbstractFunctionCallSupport<ChatCompletionMes
 				throw new IllegalStateException("No function callback found for function name: "+ functionName);
 			}
 			String functionResponse = this.functionCallbackRegister.get(functionName).call(functionArguments);
-			
-			conversationHistory.add(new ChatCompletionMessage(functionResponse, Role.TOOL,functionName,"call_abc123",null));
-		}
 
-		ChatCompletionRequest newRequest = new ChatCompletionRequest(previousRequest.stream(),conversationHistory,null,null);
-		newRequest = ModelOptionsUtils.merge(newRequest,previousRequest,ChatCompletionRequest.class);
+			conversationHistory.add(new Message(Role.TOOL,functionResponse,functionName,null));
+		}
+		QWenDashScopeService.Input input = new QWenDashScopeService.Input(conversationHistory);
+		QWenChatRequest newRequest = new QWenChatRequest(previousRequest.model(),input,null);
+		newRequest = ModelOptionsUtils.merge(newRequest,previousRequest,QWenChatRequest.class);
 		return newRequest;
 	}
 
 	//OK
 	@Override
-	protected List<ChatCompletionMessage> doGetUserMessages(ChatCompletionRequest request) {
-		logger.info("doGetUserMessages");
+	protected List<Message> doGetUserMessages(QWenChatRequest request) {
 		return request.input().messages();
 	}
 
 	@Override
-	protected ChatCompletionMessage doGetToolResponseMessage(ResponseEntity<ChatCompletion> response) {
-		logger.info("doGetToolResponseMessage");
-		return response.getBody().output().choices().iterator().next().message();
+	protected Message doGetToolResponseMessage(QWenChatResponse response) {
+		return response.output().choices().iterator().next().message();
 	}
 
 	@Override
-	protected ResponseEntity<ChatCompletion> doChatCompletion(ChatCompletionRequest request) {
-		return this.dashCopeService.chatCompletionEntity(request);
+	protected QWenChatResponse doChatCompletion(QWenChatRequest request) {
+		return this.dashScopeService.chatCompletion(request);
 	}
 
 	@Override
-	protected Flux<ResponseEntity<ChatCompletion>> doChatCompletionStream(ChatCompletionRequest request) {
-		return this.dashCopeService.chatCompletionStream(request).map(this::chunkToChatCompletion).map(Optional::ofNullable).map(ResponseEntity::of);
+	protected Flux<QWenChatResponse> doChatCompletionStream(QWenChatRequest request) {
+		return this.dashScopeService.chatCompletionStream(request).map(this::chunkToChatCompletion);
 	}
 
 	@Override
-	protected boolean isToolFunctionCall(ResponseEntity<ChatCompletion> chatCompletion) {
-		var body = chatCompletion.getBody();
+	protected boolean isToolFunctionCall(QWenChatResponse qWenChatResponse) {
 		//logger.info("判断是否需要使用函数回调，返回参数：{}",body);
-		if(body == null) {
+		if(qWenChatResponse == null) {
 			return false;
 		}
-		var choices = body.output().choices();
+		var choices = qWenChatResponse.output().choices();
 		if(CollectionUtils.isEmpty(choices)) {
 			return false;
 		}

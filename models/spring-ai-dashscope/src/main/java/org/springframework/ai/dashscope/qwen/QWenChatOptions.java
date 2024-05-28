@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.ai.chat.prompt.ChatOptions;
-import org.springframework.ai.dashscope.DashsCopeService;
-import org.springframework.ai.dashscope.DashsCopeService.FunctionTool;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.FunctionTool;
 import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.model.function.FunctionCallingOptions;
@@ -29,7 +29,7 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 	@NestedConfigurationProperty
 	private @JsonProperty("tools") List<FunctionTool> tools;
 
-	private @JsonProperty("parameters") DashsCopeService.Parameters parameters;
+	private @JsonProperty("parameters") QWenDashScopeService.Parameters parameters;
 	
 	@NestedConfigurationProperty
 	@JsonIgnore
@@ -85,7 +85,7 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 		}
 		
 		public QWenChatOptions build() {
-			this.options.parameters = new DashsCopeService.Parameters("message",null,null,null,null,null,null,null,null,null,null,0.7F,null,null,this.options.tools,null);
+			this.options.parameters = new QWenDashScopeService.Parameters(this.options.tools);
 			return this.options;
 		}
 		

@@ -1,6 +1,6 @@
 package org.springframework.ai.dashscope.llama2.api;
 
-import org.springframework.ai.dashscope.api.AbstractDashCopeService;
+import org.springframework.ai.dashscope.api.AbstractDashScopeService;
 import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatRequest;
 import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatResponse;
 
@@ -8,8 +8,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Llama2ChatDashCopeApi extends AbstractDashCopeService<Llama2ChatRequest, Llama2ChatResponse, Llama2ChatResponse> {
-	
+public class Llama2ChatDashCopeApi extends AbstractDashScopeService<Llama2ChatRequest, Llama2ChatResponse, Llama2ChatResponse> {
+
+	public Llama2ChatDashCopeApi(String accessToken, String requestUrl) {
+		super(accessToken, requestUrl);
+	}
+
 	@JsonInclude(Include.NON_NULL)
 	public record Llama2ChatRequest(
 			@JsonProperty("model") String model,

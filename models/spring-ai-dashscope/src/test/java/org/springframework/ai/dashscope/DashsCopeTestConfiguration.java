@@ -3,9 +3,10 @@ package org.springframework.ai.dashscope;
 import org.springframework.ai.dashscope.qwen.QWenChatModel;
 import org.springframework.ai.dashscope.qwen.QWenEmbeddingModel;
 import org.springframework.ai.dashscope.qwen.QWenImageModel;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.SpringBootConfiguration;
 
 @SpringBootConfiguration
@@ -20,23 +21,23 @@ public class DashsCopeTestConfiguration {
 	}
 	
 	@Bean
-	public DashsCopeService dashCopeService() {
-		return new DashsCopeService(getApiKey());
+	public QWenDashScopeService dashScopeService() {
+		return new QWenDashScopeService(getApiKey());
 	}
 	
 	@Bean
-	public QWenChatModel qWenChatClient(DashsCopeService dashCopeService) {
-		return new QWenChatModel(dashCopeService);
+	public QWenChatModel qWenChatClient(QWenDashScopeService dashScopeService) {
+		return new QWenChatModel(dashScopeService);
 	}
 	
-	@Bean
-	public QWenImageModel qWenImageClient(DashsCopeService dashCopeService) {
-		return new QWenImageModel(dashCopeService);
-	}
+//	@Bean
+//	public QWenImageModel qWenImageClient(QWenDashScopeService dashCopeService) {
+//		return new QWenImageModel(dashCopeService);
+//	}
 	
-	@Bean
-	public EmbeddingModel qwenEmbeddingClient(DashsCopeService dashCopeService) {
-		return new QWenEmbeddingModel(dashCopeService);
-	}
+//	@Bean
+//	public EmbeddingModel qwenEmbeddingClient(DashsCopeService dashCopeService) {
+//		return new QWenEmbeddingModel(dashCopeService);
+//	}
 
 }

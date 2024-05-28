@@ -293,7 +293,6 @@ public class DashsCopeService {
 			@JsonProperty("finish_reason")ChatCompletionFinishReason finishReason,
 			@JsonProperty("message") ChatCompletionMessage message,
 			@JsonProperty("tool_calls") ToolCall toolCall) {
-		
 	}
 	
 	@JsonInclude(Include.NON_NULL)
@@ -327,10 +326,7 @@ public class DashsCopeService {
 			public Function(String name,String description,String jsonSchema) {
 				this(name, description, ModelOptionsUtils.jsonToMap(jsonSchema));
 			}
-
 		}
-
-
 	}
 	
 	
@@ -471,12 +467,12 @@ public class DashsCopeService {
 
 	public Flux<String> chatCompletionStreamString(ChatCompletionRequest chatRequest){
 		Assert.notNull(chatRequest, "请求体不能为空。");
-		logger.info("开始使用Steam提交参数{}",chatRequest);
-		try{
-			logger.info("Steam提交参数Body:{}",objectMapper.writeValueAsString(chatRequest));
-		}catch (Exception e){
-			logger.error(e.getMessage());
-		}
+//		logger.info("开始使用Steam提交参数{}",chatRequest);
+//		try{
+//			logger.info("Steam提交参数Body:{}",objectMapper.writeValueAsString(chatRequest));
+//		}catch (Exception e){
+//			logger.error(e.getMessage());
+//		}
 		// 添加图文识别 测试，Qwen对这方面调用比OpenAI负责
 		String uri = getModelSpecificURI(chatRequest.model);
 		return this.webClient.post()
