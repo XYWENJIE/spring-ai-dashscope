@@ -1,0 +1,43 @@
+package org.springframework.ai.dashscope.api;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.springframework.web.client.RestClient;
+
+public class AbstractDashScopeService<I,O,SO> {
+
+	private static final String apiVersion = "v1";
+	private static final String httpUrl = "https://dashscope.aliyuncs.com/api/" + apiVersion;
+	private static final String webSocket = String.format("wss://dashscope.aliyuncs.com/api-ws/%s/inference/", apiVersion);
+	private static final Log logger = LogFactory.getLog(AbstractDashScopeService.class);
+	protected final RestClient restClient;
+	protected final String accessToken;
+	protected String requestUrl = "";
+
+	public AbstractDashScopeService(String accessToken,String requestUrl) {
+		restClient = RestClient.builder().baseUrl(httpUrl).build();
+		this.accessToken = accessToken;
+		this.requestUrl = requestUrl;
+	}
+
+	@JsonInclude(Include.NON_NULL)
+	public record ResponseError(
+			@JsonProperty("code")String code,
+			@JsonProperty("message") String message,
+			@JsonProperty("request_id")String requestId) {}
+	
+	protected O chatCompletion(I request) {
+		return null;
+		
+	}
+	
+	protected O internalInvocation(I request,Class<O> clazz) {
+		return this.restClient.post().uri(requestUrl).body(request).retrieve().body(clazz);
+		
+	}
+
+}
