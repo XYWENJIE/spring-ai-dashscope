@@ -3,26 +3,30 @@ package org.springframework.ai.dashscope.qwen.api;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.api.AbstractDashScopeService;
+import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.QWenChatRequest;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.QWenChatResponse;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import reactor.core.publisher.Flux;
 
-import javax.tools.Tool;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class QWenDashScopeService extends AbstractDashScopeService<QWenChatRequest, QWenChatResponse,Object> {
 
+    private static String QWEN_CHAT_VL_REQUEST_URL = "/services/aigc/multimodal-generation/generation";
+
+    private static String QWEN_CHAT_REQUEST_URL = "/services/aigc/text-generation/generation";
+
     public QWenDashScopeService(String accessToken){
-        super(accessToken,"/services/aigc/text-generation/generation");
+        super(accessToken,QWEN_CHAT_REQUEST_URL);
     }
 
     @JsonInclude(Include.NON_NULL)
-    public record QWenChatRequest(@JsonProperty("model") String model,@JsonProperty("input") Input input,
+    public record QWenChatRequest(@JsonProperty("model") Model model, @JsonProperty("input") Input input,
                                   @JsonProperty("parameters") Parameters parameters){}
 
     @JsonInclude(Include.NON_NULL)
@@ -31,10 +35,32 @@ public class QWenDashScopeService extends AbstractDashScopeService<QWenChatReque
 
     }
 
-    public record Message(@JsonProperty("role") Role role, @JsonProperty("content") String content,
+    @JsonInclude(Include.NON_NULL)
+    public record Message(@JsonProperty("role") Role role, @JsonProperty("content") Object rowContent,
                           @JsonProperty("name") String name, @JsonProperty("tool_calls") List<ToolCall> toolCalls){
-        public Message(Role role,String content){
+        public Message(Role role,Object content){
             this(role,content,null,null);
+        }
+
+        public Message(Role role,List<MediaContent> content){
+            this(role,content,null,null);
+        }
+
+        @JsonInclude(Include.NON_NULL)
+        public record MediaContent(@JsonProperty("image") String image,@JsonProperty("text") String text){}
+
+        public String content(){
+            if(this.rowContent== null){
+                return null;
+            }
+            if(this.rowContent instanceof String text){
+                return text;
+            }
+            if(this.rowContent instanceof List<?> list){
+                HashMap<String,String> content = (HashMap<String,String>)list.get(0);
+                return content.get("text");
+            }
+            throw new IllegalArgumentException("The content is not a string!");
         }
     }
 
@@ -126,11 +152,21 @@ public class QWenDashScopeService extends AbstractDashScopeService<QWenChatReque
 
     @Override
     public QWenChatResponse chatCompletion(QWenChatRequest request) {
+        if(request.model.equals(Model.QWen_VL_MAX) || request.model.equals(Model.QWen_VL_PLUS)){
+            this.requestUrl = QWEN_CHAT_VL_REQUEST_URL;
+        }else{
+            this.requestUrl = QWEN_CHAT_REQUEST_URL;
+        }
         return internalInvocation(request,QWenChatResponse.class);
     }
 
     @Override
     public Flux<QWenChatResponse> chatCompletionStream(QWenChatRequest request){
+        if(request.model.equals(Model.QWen_VL_MAX) || request.model.equals(Model.QWen_VL_PLUS)){
+            this.requestUrl = QWEN_CHAT_VL_REQUEST_URL;
+        }else{
+            this.requestUrl = QWEN_CHAT_REQUEST_URL;
+        }
         return this.internalInvocationStream(request,QWenChatResponse.class);
     }
 }

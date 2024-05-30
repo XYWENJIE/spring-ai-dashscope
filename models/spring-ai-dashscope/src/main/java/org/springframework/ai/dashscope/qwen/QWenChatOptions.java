@@ -143,5 +143,11 @@ public class QWenChatOptions implements FunctionCallingOptions,ChatOptions {
 		this.functions = functions;
 	}
 
+	public static QWenChatOptions fromOptions(QWenChatOptions fromOptions){
+		return QWenChatOptions.builder()
+				.withModel(fromOptions.getModel())
+				.build();
+	}
+
 
 }

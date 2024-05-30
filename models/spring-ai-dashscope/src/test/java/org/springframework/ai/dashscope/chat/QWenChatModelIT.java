@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.DashsCopeTestConfiguration;
 import org.springframework.ai.dashscope.api.tool.MockWeatherService;
@@ -26,6 +28,7 @@ import org.springframework.ai.dashscope.qwen.QWenChatOptions;
 import org.springframework.ai.model.function.FunctionCallbackWrapper;
 import org.springframework.ai.parser.ListOutputParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.convert.support.DefaultConversionService;
 
@@ -37,9 +40,9 @@ import reactor.core.publisher.Flux;
 
 @SpringBootTest(classes = {DashsCopeTestConfiguration.class})
 @EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY",matches = ".+")
-public class QwenChatModelIT {
+public class QWenChatModelIT {
 	
-	private final Logger logger = LoggerFactory.getLogger(QwenChatModelIT.class);
+	private final Logger logger = LoggerFactory.getLogger(QWenChatModelIT.class);
 	
 	private ObjectMapper objectMapper = new ObjectMapper();
 	
@@ -48,6 +51,8 @@ public class QwenChatModelIT {
 
 	@Autowired
 	private StreamingChatModel streamingChatClient;
+
+	private Resource systemResource;
 	
 	/**
 	 * 测试用例-将阿里云返回JSON字符串反序列化成ChatCompletion
@@ -63,13 +68,33 @@ public class QwenChatModelIT {
 	
 	@Test
 	public void roleTest() {
-		logger.info("chatClient对象"+chatClient);
 		UserMessage userMessage = new  UserMessage("Tell me about 3 famous pirates from the Golden Age of Piracy and why they did");
 		Prompt prompt = new Prompt(List.of(userMessage));
 		ChatResponse chatResponse = this.chatClient.call(prompt);
 		logger.info("AI回答：{}",chatResponse.getResult().toString());
 		assertThat(chatResponse.getResults()).hasSize(1);
 		assertThat(chatResponse.getResults().get(0).getOutput().getContent()).contains("Blackbeard");
+	}
+
+	@Test
+	public void streamRoleTest(){
+		UserMessage userMessage = new UserMessage(
+				"Tell me about 3 famous pirates from the Golden Age of Piracy and what they did.");
+		//SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate()
+		Prompt prompt = new Prompt(List.of(userMessage));
+		Flux<ChatResponse> flux = streamingChatClient.stream(prompt);
+
+		List<ChatResponse> responses = flux.collectList().block();
+		//assertThat(responses.size()).isGreaterThan(1);
+		String stitchedResponseContent = responses.stream()
+				.map(ChatResponse::getResults)
+				.flatMap(List::stream)
+				.map(Generation::getOutput)
+				.map(AssistantMessage::getContent)
+				.collect(Collectors.joining());
+
+		logger.info(stitchedResponseContent);
+		assertThat(stitchedResponseContent).contains("Blackbeard");
 	}
 	
 	@Test

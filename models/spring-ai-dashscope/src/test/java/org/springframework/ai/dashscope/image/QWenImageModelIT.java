@@ -5,6 +5,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashscope.DashsCopeTestConfiguration;
+import org.springframework.ai.dashscope.qwen.QWenImageOptions;
 import org.springframework.ai.image.*;
 import org.springframework.ai.image.ImageModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class QWenImageModelIT {
 	
 	@Test
 	public void imageAsUrlTest() {
-		ImageOptions options = ImageOptionsBuilder.builder().withHeight(1024).withWidth(1024).build();
+		QWenImageOptions options = QWenImageOptions.builder().build();
 		String instructions = """
 				A light cream colored mini golden doodle with a sign that contains the message "I'm on my way to BARCADE!".
 				""";

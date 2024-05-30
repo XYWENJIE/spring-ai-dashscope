@@ -22,7 +22,7 @@ import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Role;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.FunctionTool;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.ChatCompletionFinishReason;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.ToolCall;
-import org.springframework.ai.dashscope.DashsCopeService.ChatCompletionMessage.MediaContent;
+import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Message.MediaContent;
 import org.springframework.ai.dashscope.metadata.support.Model;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService;
 import org.springframework.ai.model.ModelOptionsUtils;
@@ -103,7 +103,7 @@ public class QWenChatModel extends AbstractFunctionCallSupport<Message, QWenChat
 
 	@Override
 	public ChatOptions getDefaultOptions() {
-		return this.defaultChatOptions;
+		return QWenChatOptions.fromOptions(this.defaultChatOptions);
 	}
 
 	private Map<String,Object> toMap(String id,Choices choice){
@@ -189,15 +189,15 @@ public class QWenChatModel extends AbstractFunctionCallSupport<Message, QWenChat
 		Set<String> functionsForThisRequest = new HashSet<>();
 		List<Message> chatCompletionMessages = prompt.getInstructions().stream().map(m -> {
 			if(!CollectionUtils.isEmpty(m.getMedia())){
-				List<MediaContent> contents = new ArrayList<>(List.of(new MediaContent(m.getContent(),null)));
-				contents.addAll(m.getMedia().stream().map(media -> new MediaContent(null,media.getData().toString())).toList());
+				List<MediaContent> contents = new ArrayList<>(List.of(new MediaContent(null,m.getContent())));
+				contents.addAll(m.getMedia().stream().map(media -> new MediaContent(media.getData().toString(),null)).toList());
 				//TODO
-				return new Message(Role.valueOf(m.getMessageType().name()),null);
+				return new Message(Role.valueOf(m.getMessageType().name()),contents);
 			}
 			return new Message(Role.valueOf(m.getMessageType().name()),m.getContent());
 		}).toList();
 
-		QWenChatRequest request = new QWenChatRequest(this.defaultChatOptions.getModel().getModelValue(), new QWenDashScopeService.Input(chatCompletionMessages),new QWenDashScopeService.Parameters(this.defaultChatOptions.getTemperature()));
+		QWenChatRequest request = new QWenChatRequest(this.defaultChatOptions.getModel(), new QWenDashScopeService.Input(chatCompletionMessages),new QWenDashScopeService.Parameters(this.defaultChatOptions.getTemperature()));
 		
 		if(prompt.getOptions() != null) {
 			if(prompt.getOptions() instanceof ChatOptions runtimeOptions) {

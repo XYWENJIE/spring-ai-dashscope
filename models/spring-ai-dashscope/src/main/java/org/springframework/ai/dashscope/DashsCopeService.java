@@ -206,8 +206,6 @@ public class DashsCopeService {
 		public record MediaContent(
 				@JsonProperty("text") String text,
 				@JsonProperty("image") String image) {
-
-
 		}
 
 		public String content(){

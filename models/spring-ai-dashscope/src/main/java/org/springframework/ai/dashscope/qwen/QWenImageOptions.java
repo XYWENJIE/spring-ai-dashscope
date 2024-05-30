@@ -90,4 +90,8 @@ public class QWenImageOptions implements ImageOptions {
     public void buildParameters(){
         this.parameters =  new DashsCopeService.Parameters(style,size,n,seed,refStrength,refModel);
     }
+
+    public enum Size{
+
+    }
 }
