@@ -13,6 +13,7 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.model.StreamingChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.dashscope.DashsCopeService;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.QWenChatRequest;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.QWenChatResponse;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService.Output;
@@ -160,6 +161,9 @@ public class QWenChatModel extends AbstractFunctionCallSupport<Message, QWenChat
 		String oldMessage = oldMessageMap.get(chunk.requestId());
 		if(!StringUtils.hasLength(oldMessage)){
 			oldMessage = "";
+		}
+		if(!StringUtils.hasText(chunk.code())){
+			throw new DashsCopeService.DashCopeApiException(chunk.message());
 		}
 		if(StringUtils.hasLength(chunk.output().choices().get(0).message().content())){
 			String word;

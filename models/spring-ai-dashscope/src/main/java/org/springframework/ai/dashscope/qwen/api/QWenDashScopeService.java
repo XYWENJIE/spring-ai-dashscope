@@ -121,7 +121,15 @@ public class QWenDashScopeService extends AbstractDashScopeService<QWenChatReque
 
     @JsonInclude(Include.NON_NULL)
     public record QWenChatResponse(@JsonProperty("output")Output output,@JsonProperty("usage") Usage usage,
-                                   @JsonProperty("request_id") String requestId){}
+                                   @JsonProperty("request_id") String requestId,@JsonProperty("code") String code,
+                                   @JsonProperty("message") String message){
+        
+        public QWenChatResponse(Output output, Usage usage, String requestId){
+            this(output,usage,requestId,null,null);
+        }
+    }
+
+
 
     @JsonInclude(Include.NON_NULL)
     public record Output(@JsonProperty("text") String text,@JsonProperty("finish_reason") String finishReason,

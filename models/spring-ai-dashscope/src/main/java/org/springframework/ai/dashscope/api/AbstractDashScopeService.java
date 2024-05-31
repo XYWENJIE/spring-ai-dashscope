@@ -31,7 +31,7 @@ public abstract class AbstractDashScopeService<I,O,TO> {
 	protected final RestClient restClient;
 	protected final WebClient webClient;
 	protected final String accessToken;
-	protected String requestUrl = "";
+	protected String requestUrl;
 
 	public AbstractDashScopeService(String accessToken,String requestUrl) {
 		this.restClient = RestClient.builder().baseUrl(httpUrl).defaultHeaders(httpHeaders -> {
