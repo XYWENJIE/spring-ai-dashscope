@@ -90,7 +90,15 @@ public abstract class AbstractDashScopeService<I,O,TO> {
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
-		return this.webClient.post().uri(requestUrl).bodyValue(request).retrieve().bodyToFlux(clazz);
+		return this.webClient.post().uri(requestUrl).bodyValue(request).retrieve().bodyToFlux(String.class).mapNotNull(body->{
+			logger.info(body);
+			try{
+				return new ObjectMapper().readValue(body,clazz);
+			}catch (Exception e){
+				logger.error(e.getMessage(),e);
+			}
+			return null;
+		});
 	}
 
 	protected void addHttpHeaders(HttpHeaders httpHeaders){
