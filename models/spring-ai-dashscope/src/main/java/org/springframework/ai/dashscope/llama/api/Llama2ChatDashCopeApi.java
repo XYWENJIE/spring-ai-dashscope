@@ -1,12 +1,13 @@
-package org.springframework.ai.dashscope.llama2.api;
+package org.springframework.ai.dashscope.llama.api;
 
 import org.springframework.ai.dashscope.api.AbstractDashScopeService;
-import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatRequest;
-import org.springframework.ai.dashscope.llama2.api.Llama2ChatDashCopeApi.Llama2ChatResponse;
+import org.springframework.ai.dashscope.llama.api.Llama2ChatDashCopeApi.Llama2ChatRequest;
+import org.springframework.ai.dashscope.llama.api.Llama2ChatDashCopeApi.Llama2ChatResponse;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.ai.model.ModelDescription;
 
 public class Llama2ChatDashCopeApi extends AbstractDashScopeService<Llama2ChatRequest, Llama2ChatResponse, Llama2ChatResponse> {
 
@@ -16,7 +17,7 @@ public class Llama2ChatDashCopeApi extends AbstractDashScopeService<Llama2ChatRe
 
 	@JsonInclude(Include.NON_NULL)
 	public record Llama2ChatRequest(
-			@JsonProperty("model") String model,
+			@JsonProperty("model") LlamaChatModel model,
 			@JsonProperty("input") Input input) {
 		
 		public static Builder builder(String prompt) {
@@ -57,6 +58,21 @@ public class Llama2ChatDashCopeApi extends AbstractDashScopeService<Llama2ChatRe
 			@JsonProperty("output_tokens")  Integer outputTokens,
 			@JsonProperty("input_tokens") Integer inputTokens) {
 		
+	}
+
+	public enum LlamaChatModel implements ModelDescription{
+		LLAMA2_8B_INSTRUCT("llama2-8b-instruct");
+
+		private final String id;
+
+		LlamaChatModel(String id) {
+			this.id = id;
+		}
+
+		@Override
+		public String getModelName() {
+			return this.id;
+		}
 	}
 	
 	protected Llama2ChatResponse chatCompletion(Llama2ChatRequest request) {

@@ -1,9 +1,9 @@
 package org.springframework.ai.dashscope;
 
+import org.springframework.ai.dashscope.api.ImageDashScopeService;
 import org.springframework.ai.dashscope.qwen.QWenChatModel;
 import org.springframework.ai.dashscope.qwen.QWenImageModel;
 import org.springframework.ai.dashscope.qwen.api.QWenDashScopeService;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
 import org.springframework.boot.SpringBootConfiguration;
@@ -25,17 +25,17 @@ public class DashsCopeTestConfiguration {
 	}
 
 	@Bean
-	public QWenImageDashScopeService imageDashScopeService() {
-		return new QWenImageDashScopeService(getApiKey());
+	public ImageDashScopeService imageDashScopeService() {
+		return new ImageDashScopeService(getApiKey());
 	}
-	
+
 	@Bean
 	public QWenChatModel qWenChatClient(QWenDashScopeService dashScopeService) {
 		return new QWenChatModel(dashScopeService);
 	}
 	
 	@Bean
-	public QWenImageModel qWenImageClient(QWenImageDashScopeService imageDashScopeService) {
+	public QWenImageModel qWenImageClient(ImageDashScopeService imageDashScopeService) {
 		return new QWenImageModel(imageDashScopeService);
 	}
 	

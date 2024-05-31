@@ -148,10 +148,11 @@ public class QWenDashScopeService extends AbstractDashScopeService<QWenChatReque
         @JsonProperty("stop") STOP
     }
 
-    public record ToolCall(@JsonProperty("type") String type,@JsonProperty("function") Function function){
-        public record Function(@JsonProperty("name") String name,@JsonProperty("arguments") String arguments){
+    @JsonInclude(Include.NON_NULL)
+    public record ToolCall(@JsonProperty("type") String type,@JsonProperty("function") Function function,@JsonProperty("id") String id){
 
-        }
+
+        public record Function(@JsonProperty("name") String name,@JsonProperty("arguments") String arguments){ }
     }
 
     @JsonInclude(Include.NON_NULL)

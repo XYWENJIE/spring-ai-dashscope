@@ -162,8 +162,8 @@ public class QWenChatModel extends AbstractFunctionCallSupport<Message, QWenChat
 		if(!StringUtils.hasLength(oldMessage)){
 			oldMessage = "";
 		}
-		if(!StringUtils.hasText(chunk.code())){
-			throw new DashsCopeService.DashCopeApiException(chunk.message());
+		if(StringUtils.hasLength(chunk.code())){
+			throw new IllegalStateException(chunk.message());
 		}
 		if(StringUtils.hasLength(chunk.output().choices().get(0).message().content())){
 			String word;

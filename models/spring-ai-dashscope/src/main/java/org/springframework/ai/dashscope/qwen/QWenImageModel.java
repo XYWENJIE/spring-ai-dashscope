@@ -6,12 +6,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.dashscope.DashsCopeService;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService.QWenImageResponse;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService.QWenImageRequest;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService.Input;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService.TaskStatus;
-import org.springframework.ai.dashscope.qwen.api.QWenImageDashScopeService.TaskMetrics;
+import org.springframework.ai.dashscope.api.ImageDashScopeService;
+import org.springframework.ai.dashscope.api.ImageDashScopeService.Input;
+import org.springframework.ai.dashscope.api.ImageDashScopeService.TaskStatus;
+import org.springframework.ai.dashscope.api.ImageDashScopeService.TaskMetrics;
 import org.springframework.ai.image.*;
 import org.springframework.ai.image.ImageModel;
 import org.springframework.ai.model.ModelOptionsUtils;
@@ -28,16 +26,16 @@ public class QWenImageModel implements ImageModel {
 	
 	private final Logger logger = LoggerFactory.getLogger(QWenImageModel.class);
 	
-	private final QWenImageDashScopeService dashsCopeService;
+	private final ImageDashScopeService dashsCopeService;
 	private final QWenImageOptions defaultOptions;
 
 	private final RetryTemplate retryTemplate;
 	
-	public QWenImageModel(QWenImageDashScopeService dashCopeService) {
+	public QWenImageModel(ImageDashScopeService dashCopeService) {
 		this(dashCopeService, QWenImageOptions.builder().build(), RetryUtils.DEFAULT_RETRY_TEMPLATE);
 	}
 
-	public QWenImageModel(QWenImageDashScopeService dashsCopeService, QWenImageOptions defaultOptions, RetryTemplate retryTemplate){
+	public QWenImageModel(ImageDashScopeService dashsCopeService, QWenImageOptions defaultOptions, RetryTemplate retryTemplate){
 		Assert.notNull(dashsCopeService, "dashCopeService 不能为空");
 		this.dashsCopeService = dashsCopeService;
 		this.defaultOptions =defaultOptions;
@@ -46,14 +44,14 @@ public class QWenImageModel implements ImageModel {
 
 	@Override
 	public ImageResponse call(ImagePrompt imagePrompt) {
-		QWenImageResponse taskImageResponse = this.retryTemplate.execute(ctx -> {
+		ImageDashScopeService.ImageResponse taskImageResponse = this.retryTemplate.execute(ctx -> {
 			String instructions = imagePrompt.getInstructions().get(0).getText();
 			
-			QWenImageRequest imageRequest = new QWenImageRequest(new Input(instructions,null,null), null);
+			ImageDashScopeService.ImageRequest imageRequest = new ImageDashScopeService.ImageRequest(new Input(instructions,null,null), null);
 			if(this.defaultOptions != null){
-				imageRequest = ModelOptionsUtils.merge(this.defaultOptions,imageRequest,QWenImageRequest.class);
+				imageRequest = ModelOptionsUtils.merge(this.defaultOptions,imageRequest,ImageDashScopeService.ImageRequest.class);
 			}
-            QWenImageResponse imageResponse = this.dashsCopeService.submitTask(imageRequest);
+			ImageDashScopeService.ImageResponse imageResponse = this.dashsCopeService.submitTask(imageRequest);
 			logger.info(imageResponse.toString());
 			return imageResponse;
 		});
@@ -66,7 +64,7 @@ public class QWenImageModel implements ImageModel {
 		}
 
 		return this.retryTemplate.execute(ctx -> {
-			QWenImageResponse resultImageResponse;
+			ImageDashScopeService.ImageResponse resultImageResponse;
 			TaskStatus queryTaskStatus;
 			do{
 				resultImageResponse = this.dashsCopeService.queryTask(taskImageResponse.output().taskId());
@@ -92,13 +90,13 @@ public class QWenImageModel implements ImageModel {
 		});
 	}
 	
-	private ImageResponse convertResponse(QWenImageResponse qwenImageResponse) {
-		if(qwenImageResponse == null) {
+	private ImageResponse convertResponse(ImageDashScopeService.ImageResponse imageResponse) {
+		if(imageResponse == null) {
 			logger.warn("No image response returned for");
 			return new ImageResponse(List.of());
 		}
 		
-		List<ImageGeneration> imageGenerationList = qwenImageResponse.output().results().stream().map(entry -> new ImageGeneration(new Image(entry.url(),null))).toList();
+		List<ImageGeneration> imageGenerationList = imageResponse.output().results().stream().map(entry -> new ImageGeneration(new Image(entry.url(),null))).toList();
 		return new ImageResponse(imageGenerationList);
 	}
 

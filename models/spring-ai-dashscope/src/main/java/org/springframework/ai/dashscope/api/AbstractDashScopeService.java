@@ -91,7 +91,7 @@ public abstract class AbstractDashScopeService<I,O,TO> {
 			throw new RuntimeException(e);
 		}
 		return this.webClient.post().uri(requestUrl).bodyValue(request).retrieve().bodyToFlux(String.class).mapNotNull(body->{
-			logger.info(body);
+			logger.info("请求:{}",body);
 			try{
 				return new ObjectMapper().readValue(body,clazz);
 			}catch (Exception e){
